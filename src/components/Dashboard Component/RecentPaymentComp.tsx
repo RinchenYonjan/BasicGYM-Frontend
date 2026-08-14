@@ -2,10 +2,9 @@ import { Feather } from '@expo/vector-icons'
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
 
-
 export default function RecentPaymentComp(){
     return(
-        <ScrollView>
+        <ScrollView style={{marginHorizontal:12}}>
               <Text style={styles.sectionTitle}>Recent Payment</Text>
         <TouchableOpacity style={styles.recentPaymentCard} activeOpacity={0.7}>
           <View style={styles.recentPaymentLeft}>

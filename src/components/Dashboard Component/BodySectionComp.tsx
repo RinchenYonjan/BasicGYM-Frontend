@@ -14,7 +14,7 @@ interface QuickAction {
 }
 
 
-export default function BodySectionComp(){
+export default function BodySectionComp() {
   const overviewItems: OverviewItem[] = [
     {
       icon: <MaterialCommunityIcons name="dumbbell" size={22} color='#7C5CFC' />,
@@ -61,21 +61,22 @@ export default function BodySectionComp(){
     },
   ];
 
-  return(
-    <View style={{marginHorizontal:12}}>
+  return (
+    <View style={{ marginHorizontal: 12 }}>
       <Text style={styles.sectionTitle}>Overview</Text>
-      <View style={styles.grid}> {overviewItems.map((item, idx) => (
+      <View style={styles.grid}> 
+        {overviewItems?.map((item, idx) => (
         <View key={idx} style={styles.overviewCard}>
-        <View style={[styles.overviewIconWrap, { backgroundColor: item.bgColor }]}>
-                {item.icon}
+          <View style={[styles.overviewIconWrap, { backgroundColor: item.bgColor }]}>
+            {/* {item.icon} */}
+          </View>
+          <Text style={styles.overviewValue}>{item.value}</Text>
+          <Text style={styles.overviewLabel}>{item.label}</Text>
         </View>
-        <Text style={styles.overviewValue}>{item.value}</Text>
-        <Text style={styles.overviewLabel}>{item.label}</Text>
-        </View>
-          ))}
+      ))}
       </View>
 
-        {/* Quick actions */}
+      {/* Quick actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <View style={styles.grid}>
         {quickActions.map((action, idx) => (
@@ -83,11 +84,11 @@ export default function BodySectionComp(){
             {action.icon}
             <Text style={styles.actionLabel}>{action.label}</Text>
           </TouchableOpacity>
-          ))}
-        </View>
+        ))}
+      </View>
     </View>
 
-    )
+  )
 }
 
 const styles = StyleSheet.create({
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
-    marginBottom: 24,
+    marginBottom: 10,
   },
   overviewCard: {
     width: '23.5%',
@@ -118,7 +119,7 @@ const styles = StyleSheet.create({
     height: 34,
     borderRadius: 10,
     alignItems: 'center',
-    backgroundColor:"red",
+    backgroundColor: "red",
     justifyContent: 'center',
     marginBottom: 6,
   },

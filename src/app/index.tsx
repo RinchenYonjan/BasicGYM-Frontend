@@ -4,6 +4,7 @@
 // import { SafeAreaView } from "react-native-safe-area-context";
 
 import { Redirect } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // export default function HomeScreen() {
 
@@ -134,10 +135,21 @@ import { Redirect } from "expo-router";
 // }
 
 
+
 export default function Index(){
+
+  
+// function hello(){
+//   console.log("This ishello")
+// }
+// useEffect(()=>{
+// hello()
+// },[])
   return (
+    <SafeAreaView>
     
-    <Redirect href="/(auth)/dashboard"/>
+    <Redirect href="/login" />
+    </SafeAreaView>
   
   )
   
