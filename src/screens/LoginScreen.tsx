@@ -1,4 +1,5 @@
 import { loginUser } from '@/api/auth.api';
+import ButtonComp from '@/components/Login Component/ButtonComp';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -96,34 +97,9 @@ export default function LoginScreen({ navigation }: LoginScreenProps) {
 
             
           </View>
-          {/* <Pressable style={{
-            backgroundColor:"red"
-          }}>
-        <Text style={{
-          color:"black",
-          backgroundColor:"red"
-        }}>Login</Text>
-      </Pressable> */}
         </View>
       </View>
-      {/* <Pressable style={{
-            backgroundColor:"red",
-            borderColor:"red",
-          }}>
-        <Text style={{
-          color:"black",
-          backgroundColor:"red"
-        }}>Login</Text> */}
-      {/* </Pressable> */}
-      {/* <ButtonComp/>
-       */}
-        <View>
-               <TouchableOpacity style={styles.loginButton} activeOpacity={0.85 } onPress={()=>handleLogin()}>
-                 <Text style={styles.loginButtonText}>Log In</Text>
-               </TouchableOpacity>
-               </View>
-
-      
+       <ButtonComp onPress={handleLogin}/>     
     </SafeAreaView>
   );
 }

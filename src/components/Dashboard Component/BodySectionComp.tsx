@@ -68,7 +68,7 @@ export default function BodySectionComp() {
         {overviewItems?.map((item, idx) => (
         <View key={idx} style={styles.overviewCard}>
           <View style={[styles.overviewIconWrap, { backgroundColor: item.bgColor }]}>
-            {/* {item.icon} */}
+            {item.icon}
           </View>
           <Text style={styles.overviewValue}>{item.value}</Text>
           <Text style={styles.overviewLabel}>{item.label}</Text>

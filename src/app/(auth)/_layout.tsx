@@ -23,23 +23,19 @@ export default function TabLayout() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Tabs>
-        <Tabs.Screen name='(auth)/login' options={{
-          headerShown:false,
-          title:""
 
-        }}>
-          
-        </Tabs.Screen>
         <Tabs.Screen name="(auth)/dashboard" options={{
           headerShown:false,
           title:"Home"
         }}>
+
         </Tabs.Screen>
         <Tabs.Screen name='(auth)/payment' options={{
           headerShown:false,
           title:"Payment"
         }}>
         </Tabs.Screen>
+      
       </Tabs>
     </ThemeProvider>
   );

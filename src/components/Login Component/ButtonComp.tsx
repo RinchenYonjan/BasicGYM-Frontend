@@ -1,26 +1,28 @@
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity } from 'react-native';
 
-export default function ButtonComp(){
-    return(
-        <View>
-        <TouchableOpacity style={styles.loginButton} activeOpacity={0.85}>
-          <Text style={styles.loginButtonText}>Log In</Text>
-        </TouchableOpacity>
-        </View>
-    )
+type ButtonCompProps = {
+  onPress: () => void;
+};
+
+export default function ButtonComp({ onPress }: ButtonCompProps) {
+  return (
+    <TouchableOpacity style={styles.button} onPress={onPress}>
+      <Text style={styles.text}>Login</Text>
+    </TouchableOpacity>
+  );
 }
 
 const styles = StyleSheet.create({
-     loginButton: {
+  button: {
     backgroundColor: '#000',
     height: 56,
     borderRadius: 28,
-    alignItems: 'center',
     justifyContent: 'center',
+    alignItems: 'center',
   },
-  loginButtonText: {
+  text: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
   },
-})
+});
