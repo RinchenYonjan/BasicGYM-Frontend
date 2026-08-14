@@ -1,98 +1,144 @@
-import * as Device from 'expo-device';
-import { Platform, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+// import CardComp from "@/components/CardComp";
+// import { useEffect, useState } from "react";
+// import { FlatList, Text, View } from "react-native";
+// import { SafeAreaView } from "react-native-safe-area-context";
 
-import { AnimatedIcon } from '@/components/animated-icon';
-import { HintRow } from '@/components/hint-row';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { WebBadge } from '@/components/web-badge';
-import { BottomTabInset, MaxContentWidth, Spacing } from '@/constants/theme';
+import { Redirect } from "expo-router";
 
-function getDevMenuHint() {
-  if (Platform.OS === 'web') {
-    return <ThemedText type="small">use browser devtools</ThemedText>;
-  }
-  if (Device.isDevice) {
-    return (
-      <ThemedText type="small">
-        shake device or press <ThemedText type="code">m</ThemedText> in terminal
-      </ThemedText>
-    );
-  }
-  const shortcut = Platform.OS === 'android' ? 'cmd+m (or ctrl+m)' : 'cmd+d';
+// export default function HomeScreen() {
+
+//   const [products, setProducts] = useState<any>([]);
+  
+//   const [users, setUsers] = useState<any[]>([]);
+
+//   useEffect(() => {
+//     fetch("https://dummyjson.com/products")
+//       .then((res) => res.json())
+//       .then((data) => {
+//         setProducts(data.products);
+//       })
+//       .catch((err)=>console.log(err));
+//     },[]);
+//   // const [value, setValue] = useState (1);
+//   // const [result, setResult] = useState <any>();
+//   // const [users, setUsers] = useState([
+//   //   {
+//   //     id: "1",
+//   //     name: "Jhon",
+//   //     age: "25",
+//   //   },
+//   //   {
+//   //     id: "2",
+//   //     name: "Sam",
+//   //     age: "30",
+//   //   },
+//   //   {
+//   //     id: "3",
+//   //     name: "Peter",
+//   //     age: "35",
+//   //   },
+//   // ]);
+
+//   // function increaseNumber() {
+//   //   setValue(value + 1);
+//   // }
+
+//   // function decreaseNumber() {
+//   //   setValue((preValue) => {
+//   //     return preValue - 1;
+//   //   });
+//   // }
+
+//   // function addition(a: number, b: number) {
+//   //   return a + b;
+//   // }
+
+//   // function multiplication(c: number, d: number) {
+//   //   setResult(c * d);
+//   // }
+
+//   async function getUsers(){
+//     try {
+      
+//       const response = await fetch ("https://dummyjson.com/users");
+//       const data = await response.json();
+
+//       setUsers(data.users)
+//     }catch (err){
+//       console.log(err);
+//     }
+//   }
+
+//   useEffect(() => {
+//     getUsers();
+//   },[])
+
+//   return (
+//     <SafeAreaView>
+//       {/* <Text>The increase number is {value}</Text>
+//       <Text onPress={increaseNumber}>Press here to increase number</Text>
+//       <Text onPress={decreaseNumber}>Press here to decrease number</Text>
+//       <Text>The addition of 2 and 3 is {addition(2, 3)}</Text>
+//       <Text
+//         onPress={() => {
+//           multiplication(14, 14);
+//         }}
+//       >
+//         Click here to multiplication of 14*14 is {result}
+//       </Text> */}
+
+//       <FlatList 
+//       data = {users}
+//       keyExtractor={(item) => item.id.toString()}
+//       renderItem={({item}) => {
+//         return (
+//           <View style = {{padding:10}}>
+//             <Text>{item.firstName}</Text>
+//             <Text>{item.gender}</Text>
+//             <Text>{item.email}</Text>
+//             <Text>{item.university}</Text>
+//           </View>
+//         )
+//       }}
+//       />
+
+//      <FlatList
+//         data={products}
+//         keyExtractor={(item) => item.id.toString()}
+//         renderItem={({ item }) => (
+//           <CardComp
+//             title={item.title}
+//             price={item.price}
+//             url={item.thumbnail} // image from DummyJSON
+//           />
+//         )}
+//       />
+
+//       {/* \
+//       <FlatList
+//         data={users}
+//         renderItem={({ item }) => {
+//           return (
+//             <View>
+//               <Text>{item.name}</Text>
+//               <Text>{item.age}</Text>
+//             </View>
+//           );
+//         }}
+//       /> */}
+
+//       {/* <FlatList
+//       data = {product} /> */}
+//     </SafeAreaView>
+//   );
+// }
+
+
+export default function Index(){
   return (
-    <ThemedText type="small">
-      press <ThemedText type="code">{shortcut}</ThemedText>
-    </ThemedText>
-  );
+    
+    <Redirect href="/(auth)/dashboard"/>
+  
+  )
+  
 }
-
-export default function HomeScreen() {
-  return (
-    <ThemedView style={styles.container}>
-      <SafeAreaView style={styles.safeArea}>
-        <ThemedView style={styles.heroSection}>
-          <AnimatedIcon />
-          <ThemedText type="title" style={styles.title}>
-            Welcome to&nbsp;Expo
-          </ThemedText>
-        </ThemedView>
-
-        <ThemedText type="code" style={styles.code}>
-          get started
-        </ThemedText>
-
-        <ThemedView type="backgroundElement" style={styles.stepContainer}>
-          <HintRow
-            title="Try editing"
-            hint={<ThemedText type="code">src/app/index.tsx</ThemedText>}
-          />
-          <HintRow title="Dev tools" hint={getDevMenuHint()} />
-          <HintRow
-            title="Fresh start"
-            hint={<ThemedText type="code">npm run reset-project</ThemedText>}
-          />
-        </ThemedView>
-
-        {Platform.OS === 'web' && <WebBadge />}
-      </SafeAreaView>
-    </ThemedView>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    flexDirection: 'row',
-  },
-  safeArea: {
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    alignItems: 'center',
-    gap: Spacing.three,
-    paddingBottom: BottomTabInset + Spacing.three,
-    maxWidth: MaxContentWidth,
-  },
-  heroSection: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    paddingHorizontal: Spacing.four,
-    gap: Spacing.four,
-  },
-  title: {
-    textAlign: 'center',
-  },
-  code: {
-    textTransform: 'uppercase',
-  },
-  stepContainer: {
-    gap: Spacing.three,
-    alignSelf: 'stretch',
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.four,
-    borderRadius: Spacing.four,
-  },
-});
