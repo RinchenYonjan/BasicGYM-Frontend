@@ -6,7 +6,7 @@ export default function Dashboard() {
 
     return (
 
-        <SafeAreaView style={{backgroundColor:'#eeeeee'}}> 
+        <SafeAreaView> 
             <DashboardScreen/>
         </SafeAreaView>
 

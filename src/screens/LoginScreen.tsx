@@ -3,137 +3,183 @@ import ButtonComp from '@/components/Login Component/ButtonComp';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 const RED = '#E53935';
 
-type LoginScreenProps = {
-  navigation?: {
-    goBack: () => void;
-  };
-};
-
-export default function LoginScreen({ navigation }: LoginScreenProps) {
+export default function LoginScreen() {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const handleLogin = async ()=>{
-    
-    const res=await loginUser(email,password)
-    console.log("this is res",res.data.token)
-    
-    if(res.data.token){
-      router.replace("/(auth)/dashboard")
+  const handleLogin = async () => {
+    try {
+      const res = await loginUser(email, password);
+
+      console.log('this is res', res.data.token);
+
+      if (res.data.token) {
+        router.replace('/(auth)/dashboard');
+      }
+    } catch (error) {
+      console.log('Login error:', error);
     }
-  }
+  };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <View>
-        {/* Back button */}
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation?.goBack?.()}
-          hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-        >
-          <Ionicons name="arrow-back" size={24} color="#000" />
-        </TouchableOpacity>
+    <View style={styles.container}>
 
-        {/* Title */}
-        <View style={styles.header}>
-          <Text style={styles.title}>GYM</Text>
-          <Text style={styles.subtitle}>Fitness App</Text>
-        </View>
+      {/* ================= BACK BUTTON ================= */}
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+        hitSlop={{
+          top: 10,
+          bottom: 10,
+          left: 10,
+          right: 10,
+        }}
+      >
+        <Ionicons
+          name="arrow-back"
+          size={24}
+          color="#000"
+        />
+      </TouchableOpacity>
 
-        {/* Form */}
-        <View style={styles.form}>
-          {/* Email */}
-          <View style={styles.inputWrapper}>
-            <Ionicons
-              name="mail"
-              size={20}
-              color={RED}
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="useremail@gmail.com"
-              placeholderTextColor="#9A9A9A"
-              value={email}
-              onChangeText={setEmail}
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-          </View>
 
-          {/* Password */}
-          <View style={styles.inputWrapper}>
-            <MaterialCommunityIcons
-              name="lock"
-              size={20}
-              color="#000"
-              style={styles.inputIcon}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="#9A9A9A"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry={!showPassword}
-            />
-            <TouchableOpacity
-              onPress={() => setShowPassword((prev) => !prev)}
-            >
-              <Ionicons
-                name={showPassword ? 'eye' : 'eye-off'}
-                size={20}
-                color="#555"
-              />
-            </TouchableOpacity>
-            {/* <Text>Helo</Text> */}
+      {/* ================= HEADER ================= */}
+      <View style={styles.header}>
+        <Text style={styles.title}>GYM</Text>
 
-            
-          </View>
-        </View>
+        <Text style={styles.subtitle}>
+          Fitness App
+        </Text>
       </View>
-       <ButtonComp onPress={handleLogin}/>     
-    </SafeAreaView>
+
+
+      {/* CENTER FORM */}
+      <View style={styles.formContainer}>
+
+        {/* Email */}
+        <View style={styles.inputWrapper}>
+          <Ionicons
+            name="mail"
+            size={20}
+            color={RED}
+            style={styles.inputIcon}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="useremail@gmail.com"
+            placeholderTextColor="#9A9A9A"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        </View>
+
+
+        {/* Password */}
+        <View style={styles.inputWrapper}>
+          <MaterialCommunityIcons
+            name="lock"
+            size={20}
+            color="#000"
+            style={styles.inputIcon}
+          />
+
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#9A9A9A"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry={!showPassword}
+          />
+
+          <TouchableOpacity
+            onPress={() =>
+              setShowPassword((prev) => !prev)
+            }
+            hitSlop={{
+              top: 10,
+              bottom: 10,
+              left: 10,
+              right: 10,
+            }}
+          >
+            <Ionicons
+              name={showPassword ? 'eye' : 'eye-off'}
+              size={20}
+              color="#555"
+            />
+          </TouchableOpacity>
+        </View>
+
+        {/* Login Button */}
+        <ButtonComp onPress={handleLogin} />
+
+      </View>
+
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
+
+  container: {
     flex: 1,
-    backgroundColor: '#fff',
-    paddingHorizontal: 24,
+    width: '100%',
   },
+
+  // ================= BACK BUTTON =================
   backButton: {
-    marginTop: 16,
-    width: 32,
+    position: 'absolute',
+    top: 24,
+    left: 0,
+    zIndex: 10,
   },
+
+  // ================= HEADER =================
   header: {
+    position: 'absolute',
+    top: 150,
+    left: 0,
+    right: 0,
     alignItems: 'center',
-    marginTop: 48,
-    marginBottom: 40,
+    zIndex: 10,
   },
+
   title: {
     fontSize: 32,
     fontWeight: '800',
     color: RED,
     letterSpacing: 1,
   },
+
   subtitle: {
     fontSize: 14,
     color: RED,
     marginTop: 4,
     fontStyle: 'italic',
   },
-  form: {
-    marginTop: 8,
+
+  // ================= FORM =================
+  formContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    width: '100%',
   },
+
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -144,49 +190,15 @@ const styles = StyleSheet.create({
     height: 52,
     marginBottom: 16,
   },
+
   inputIcon: {
     marginRight: 10,
   },
+
   input: {
     flex: 1,
     fontSize: 15,
     color: '#000',
   },
-  rowBetween: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  rememberRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  checkbox: {
-    width: 16,
-    height: 16,
-    borderRadius: 3,
-    borderWidth: 1.5,
-    borderColor: RED,
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rememberText: {
-    fontSize: 13,
-    color: '#000',
-  },
-  loginButton: {
-    backgroundColor: '#000',
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loginButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-});
 
+});
