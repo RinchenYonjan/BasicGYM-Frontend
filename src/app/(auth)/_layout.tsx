@@ -1,4 +1,5 @@
 import { Manrope_400Regular, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
+import { Image } from 'expo-image';
 import { DarkTheme, DefaultTheme, Tabs, ThemeProvider } from 'expo-router';
 import { Text, TextInput, useColorScheme } from 'react-native';
 
@@ -22,20 +23,35 @@ export default function TabLayout() {
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+      {/* <Stack/> */}
       <Tabs>
-
-        <Tabs.Screen name="(auth)/dashboard" options={{
+       
+        // Home Screen Nav
+        <Tabs.Screen name="dashboard" options={{
           headerShown:false,
-          title:"Home"
+          title: "Dashboard",
+          tabBarIcon:({})=>(
+           <Image source={{
+            uri:"../assets/images/icon.png"
+           }}></Image>
+          )
         }}>
+        </Tabs.Screen>
 
-        </Tabs.Screen>
-        <Tabs.Screen name='(auth)/payment' options={{
+        // Payment Screen Nav
+        <Tabs.Screen name='payment' options={{
           headerShown:false,
-          title:"Payment"
+          title:"Payment",
         }}>
         </Tabs.Screen>
-      
+        
+        // Profile Screen Nav
+        <Tabs.Screen name='profile' options={{
+          headerShown:false,
+          title:"Profile",
+        }}>
+        </Tabs.Screen>
+
       </Tabs>
     </ThemeProvider>
   );

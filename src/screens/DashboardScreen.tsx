@@ -6,17 +6,14 @@ import SummaryCardComp from "@/components/Dashboard Component/SummaryCardComp";
 import { View } from "react-native";
 
 
-
 export function DashboardScreen(){
     return (
         <View>
-
             <HeadingSectionComp/>
             <SummaryCardComp/>
             <PaymentDueCardComp/>
             <BodySectionComp/>
             <RecentPaymentComp/>
-            
         </View>
     )
 }

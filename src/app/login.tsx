@@ -5,11 +5,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function login(){
 
     return(
-
         <SafeAreaView style={styles.safeArea}>
         <LoginScreen/>
         </SafeAreaView>
-   
     )
 
 }
