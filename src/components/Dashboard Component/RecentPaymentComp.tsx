@@ -1,37 +1,92 @@
-import { Feather } from '@expo/vector-icons'
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Feather } from '@expo/vector-icons';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
 export default function RecentPaymentComp(){
+    const payments = [
+    {
+      title: 'Membership Fee',
+      date: '01 Aug 2026',
+      amount: 'Rs. 2,500',
+    },
+    {
+      title: 'Personal Training',
+      date: '15 Jul 2026',
+      amount: 'Rs. 1,500',
+    },
+    {
+      title: 'Membership Renewal',
+      date: '01 Jul 2026',
+      amount: 'Rs. 2,500',
+    },
+  ];
+
     return(
-        <ScrollView style={{marginHorizontal:12}}>
-              <Text style={styles.sectionTitle}>Recent Payment</Text>
-        <TouchableOpacity style={styles.recentPaymentCard} activeOpacity={0.7}>
+      <View style={{marginHorizontal: 12}}>
+        <Text style={styles.sectionTitle}>Recent Payment</Text>
+
+      <ScrollView style={{ height: 200 }}
+        showsVerticalScrollIndicator={true}
+        nestedScrollEnabled={true}
+      >
+
+      {payments.map((payment, index) => (
+        <TouchableOpacity
+        key={index}
+          style={[
+            styles.recentPaymentCard,
+            index > 0 && { marginTop: 12 },
+          ]}
+          activeOpacity={0.7}
+        >
           <View style={styles.recentPaymentLeft}>
             <View style={styles.recentPaymentIcon}>
-              <Feather name="check" size={18} color='#FFFFFF' />
+              <Feather
+                name="check"
+                size={18}
+                color="#FFFFFF"
+                />
             </View>
+
             <View>
-              <Text style={styles.recentPaymentTitle}>Membership Fee</Text>
+              <Text style={styles.recentPaymentTitle}>
+                {payment.title}
+              </Text>
+
               <View style={styles.recentPaymentMetaRow}>
-                <Text style={styles.recentPaymentDate}>01 Aug 2026</Text>
+                <Text style={styles.recentPaymentDate}>
+                  {payment.date}
+                </Text>
+
                 <View style={styles.paidPill}>
-                  <Text style={styles.paidPillText}>Paid</Text>
+                  <Text style={styles.paidPillText}>
+                    Paid
+                  </Text>
                 </View>
               </View>
             </View>
           </View>
+
           <View style={styles.recentPaymentRight}>
-            <Text style={styles.recentPaymentAmount}>Rs. 2,500</Text>
-            <Feather name="chevron-right" size={18} color='#8B8A94' />
+            <Text style={styles.recentPaymentAmount}>
+              {payment.amount}
+            </Text>
+
+            <Feather
+              name="chevron-right"
+              size={18}
+              color="#8B8A94"
+              />
           </View>
         </TouchableOpacity>
-      </ScrollView>
-    )
+      ))}
+    </ScrollView>
+</View>
+  );
 }
 
 const styles = StyleSheet.create({
-    sectionTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
     color: '#15131F',

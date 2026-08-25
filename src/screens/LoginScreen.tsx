@@ -3,15 +3,9 @@ import ButtonComp from '@/components/Login Component/ButtonComp';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import Toast from "react-native-toast-message";
 
-const RED = '#E53935';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState<string>('');
@@ -21,20 +15,45 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const res = await loginUser(email, password);
+      console.log("this is response only",res.data);
 
       console.log('this is res', res.data.token);
 
       if (res.data.token) {
+        Toast.show({
+          type:"success",
+          text1:"Logged in successfully",
+          autoHide:true,
+          visibilityTime:3000
+        })
         router.replace('/(auth)/dashboard');
       }
-    } catch (error) {
-      console.log('Login error:', error);
+      
+    }catch(error:any) {
+
+      console.log('Login error:', error.response.data);
+      const message = error?.response?.data;
+      const errorMesage = message.message;
+      console.log("this is error Message",errorMesage);
+
+      Toast.show({
+        type:"error",
+        text1:errorMesage,
+        position:"top",
+        visibilityTime:3000,
+        autoHide:true,
+        
+      })
+    
     }
   };
 
   return (
+
     <View style={styles.container}>
 
+      <Toast/>
+    
       {/* ================= BACK BUTTON ================= */}
       <TouchableOpacity
         style={styles.backButton}
@@ -72,7 +91,7 @@ export default function LoginScreen() {
           <Ionicons
             name="mail"
             size={20}
-            color={RED}
+            color='#E53935'
             style={styles.inputIcon}
           />
 
@@ -162,13 +181,13 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 32,
     fontWeight: '800',
-    color: RED,
+    color: '#E53935',
     letterSpacing: 1,
   },
 
   subtitle: {
     fontSize: 14,
-    color: RED,
+    color: '#E53935',
     marginTop: 4,
     fontStyle: 'italic',
   },

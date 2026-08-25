@@ -1,15 +1,27 @@
-import { Manrope_400Regular, Manrope_700Bold, useFonts } from '@expo-google-fonts/manrope';
-import { Image } from 'expo-image';
-import { DarkTheme, DefaultTheme, Tabs, ThemeProvider } from 'expo-router';
-import { Text, TextInput, useColorScheme } from 'react-native';
+import { getToken } from "@/helper/tokenStorage";
+import {
+  Manrope_400Regular,
+  Manrope_700Bold,
+  useFonts,
+} from "@expo-google-fonts/manrope";
+import {
+  router,
+  Tabs
+} from "expo-router";
+import { useEffect } from "react";
+import { Text, TextInput, useColorScheme } from "react-native";
 
-// Global default font for all Text components
+// Global default font
 (Text as any).defaultProps = (Text as any).defaultProps || {};
-(Text as any).defaultProps.style = { fontFamily: 'Manrope_400Regular' };
+(Text as any).defaultProps.style = {
+  fontFamily: "Manrope_400Regular",
+};
 
-// Global default font for all TextInput components
+// Global default font for TextInput
 (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
-(TextInput as any).defaultProps.style = { fontFamily: 'Manrope_400Regular' };
+(TextInput as any).defaultProps.style = {
+  fontFamily: "Manrope_400Regular",
+};
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -19,40 +31,61 @@ export default function TabLayout() {
     Manrope_700Bold,
   });
 
-  if (!fontsLoaded) return null;
+  // const [isButtonclicked,setIsButtonClicked] = useState(false);
+
+
+  // function handleButtonClick(){
+  //   setIsButtonClicked(true);
+  // }
+
+
+  const isTokenExist = async()=>{
+    const token = await getToken();
+    if(token){
+      return token;
+    }
+    return false;
+  }
+  
+useEffect(()=>{
+
+  const token = isTokenExist();
+  if(!token){
+    router.replace("/login");
+  }
+
+},[])
+
+  if (!fontsLoaded) {
+    return null;
+  }
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      {/* <Stack/> */}
-      <Tabs>
-       
-        // Home Screen Nav
-        <Tabs.Screen name="dashboard" options={{
-          headerShown:false,
+    <Tabs
+      screenOptions={{
+        headerShown: false,
+      }}
+    >
+      <Tabs.Screen
+        name="dashboard"
+        options={{
           title: "Dashboard",
-          tabBarIcon:({})=>(
-           <Image source={{
-            uri:"../assets/images/icon.png"
-           }}></Image>
-          )
-        }}>
-        </Tabs.Screen>
+        }}
+      />
 
-        // Payment Screen Nav
-        <Tabs.Screen name='payment' options={{
-          headerShown:false,
-          title:"Payment",
-        }}>
-        </Tabs.Screen>
-        
-        // Profile Screen Nav
-        <Tabs.Screen name='profile' options={{
-          headerShown:false,
-          title:"Profile",
-        }}>
-        </Tabs.Screen>
+      <Tabs.Screen
+        name="payment"
+        options={{
+          title: "Payment",
+        }}
+      />
 
-      </Tabs>
-    </ThemeProvider>
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+        }}
+      />
+    </Tabs>
   );
 }

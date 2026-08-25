@@ -1,15 +1,10 @@
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 interface OverviewItem {
   icon: React.ReactNode;
   bgColor: string;
   value: string;
-  label: string;
-}
-
-interface QuickAction {
-  icon: React.ReactNode;
   label: string;
 }
 
@@ -42,25 +37,6 @@ export default function BodySectionComp() {
     },
   ];
 
-  const quickActions: QuickAction[] = [
-    {
-      icon: <Feather name="credit-card" size={22} color='#7C5CFC' />,
-      label: 'Payments',
-    },
-    {
-      icon: <Feather name="calendar" size={22} color='#22C55E' />,
-      label: 'Membership',
-    },
-    {
-      icon: <Feather name="bar-chart-2" size={22} color="#3B82F6" />,
-      label: 'Attendance',
-    },
-    {
-      icon: <Feather name="user" size={22} color="#F59E0B" />,
-      label: 'Profile',
-    },
-  ];
-
   return (
     <View style={{ marginHorizontal: 12 }}>
       <Text style={styles.sectionTitle}>Overview</Text>
@@ -74,17 +50,6 @@ export default function BodySectionComp() {
           <Text style={styles.overviewLabel}>{item.label}</Text>
         </View>
       ))}
-      </View>
-
-      {/* Quick actions */}
-      <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <View style={styles.grid}>
-        {quickActions.map((action, idx) => (
-          <TouchableOpacity key={idx} style={styles.actionCard} activeOpacity={0.7}>
-            {action.icon}
-            <Text style={styles.actionLabel}>{action.label}</Text>
-          </TouchableOpacity>
-        ))}
       </View>
     </View>
 
