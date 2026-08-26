@@ -112,11 +112,28 @@ export default function ChangePasswordScreen() {
       setSaving(true);
       const response = await changeUserPassword(currentPassword, newPassword);
 
-      console.log("Password change response:",response);
+      console.log("Password change response:",response.message);
+      Toast.show({
+        type:"success",
+
+        text1:response?.message || "Password changed",
+        position:"top",
+        visibilityTime:3000,
+        autoHide:true
+      })
       console.log("Password changed successfully");
       router.back();
 
     }catch(error:any){
+
+      console.log("This is error",error.response.data.message);
+        Toast.show({
+        type:"error",
+        text1:error?.response?.data?.message,
+        position:"top",
+        visibilityTime:3000,
+        autoHide:true,      
+      })
 
       console.log("Change password error:",error?.response?.data || error?.message || error);
     
