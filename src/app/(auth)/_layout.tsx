@@ -1,5 +1,6 @@
 import { getToken } from "@/helper/tokenStorage";
 import { Manrope_400Regular, Manrope_700Bold, useFonts } from "@expo-google-fonts/manrope";
+import { Ionicons } from "@expo/vector-icons";
 import { router, Tabs } from "expo-router";
 import { useEffect } from "react";
 import { Text, TextInput } from "react-native";
@@ -47,12 +48,20 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
+        tabBarActiveTintColor: "#5B2A6F",
+        tabBarInactiveTintColor: "#8A8A8E",
       }}>
 
       <Tabs.Screen
         name="dashboard"
         options={{
           title: "Dashboard",
+           tabBarIcon: ({ color, size, focused }) => (
+        <Ionicons
+          name={focused ? "home" : "home-outline"}
+          size={size}
+          color={color}/>
+          ),
         }}
       />
 
@@ -60,6 +69,12 @@ export default function TabLayout() {
         name="payment"
         options={{
           title: "Payment",
+          tabBarIcon: ({ color, size, focused }) => (
+        <Ionicons
+          name={focused ? "card" : "card-outline"}
+          size={size}
+          color={color}/>
+          ),
         }}
       />
 
@@ -67,6 +82,12 @@ export default function TabLayout() {
         name="profile"
         options={{
           title: "Profile",
+           tabBarIcon: ({ color, size, focused }) => (
+        <Ionicons
+          name={focused ? "person" : "person-outline"}
+          size={size}
+          color={color}/>
+          ),
         }}
       />
 

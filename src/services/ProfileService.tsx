@@ -27,14 +27,14 @@ export const getUserProfile = async() => {
 
   }catch(error: any){
 
-    console.log("Get profile error:", error?.response?.data || error?.message || error);
+    console.log("Error in getUserProfile API:", error?.response?.data || error?.message || error);
     throw error;
   
   }
 };
 
 
-export const editUserProfile = async (username: string, email: string, phonenumber: string, address: string) => {
+export const editUserProfile = async (username: string, phonenumber: string, address: string) => {
   
   try {
     const token = await getToken();
@@ -50,7 +50,6 @@ export const editUserProfile = async (username: string, email: string, phonenumb
     const response = await axios.put(url,
       {
         username,
-        email,
         phonenumber,
         address,
       },
@@ -66,8 +65,35 @@ export const editUserProfile = async (username: string, email: string, phonenumb
 
   }catch(error:any){
 
-    console.log("Edit profile error:",error?.response?.data || error?.message || error);
+    console.log("Error in editUserProfile API:",error?.response?.data || error?.message || error);
     throw error;
   
+  }
+};
+
+export const changeUserPassword = async(currentPassword: string, newPassword: string) => {
+  try {
+    const token = await getToken();
+
+    const response = await axios.put(
+      `${AppConfig.baseURL}/api/user/change-password`,
+      {
+        currentPassword,
+        newPassword,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+
+  } catch (error: any) {
+
+    console.log("Error in changeUserPassword API:", error?.response?.data || error?.message || error);
+    throw error;
+
   }
 };

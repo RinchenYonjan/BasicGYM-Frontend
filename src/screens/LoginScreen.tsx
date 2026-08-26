@@ -42,7 +42,6 @@ export default function LoginScreen() {
         position:"top",
         visibilityTime:3000,
         autoHide:true,
-        
       })
     
     }

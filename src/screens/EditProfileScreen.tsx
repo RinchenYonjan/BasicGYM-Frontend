@@ -1,16 +1,14 @@
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { editUserProfile, getUserProfile } from "../services/ProfileService";
 
-type EditProfileScreenProps = {
-  onBack: () => void;
-};
 
-export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
+export default function EditProfileScreen(){
   
   const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
   const [address, setAddress] = useState("");
   const [loading, setLoading] = useState(true);
@@ -36,7 +34,6 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
       }
 
       setUsername(data.username ?? "");
-      setEmail(data.email ?? "");
       setPhonenumber(data.phonenumber ?? "");
       setAddress(data.address ?? "");
 
@@ -56,7 +53,6 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
 
       const response = await editUserProfile(
         username,
-        email,
         phonenumber,
         address
       );
@@ -64,7 +60,8 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
       console.log("Profile updated:",response);
 
       // Go back to ProfileScreen
-      onBack();
+      router.back();
+
     }catch(error:any){
      
       console.log("Save profile error:",error?.response?.data || error?.message || error );
@@ -89,19 +86,19 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={
-        Platform.OS === "ios"
-          ? "padding"
+    <SafeAreaView style={styles.container}>
+
+    <KeyboardAvoidingView behavior={
+      Platform.OS === "ios"
+      ? "padding"
           : undefined
-      }>
+        }>
 
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
-          onPress={onBack}
-          style={styles.backButton}
+         onPress={() => router.back()}
+         style={styles.backButton}
           activeOpacity={0.7}>
 
           <Ionicons
@@ -149,23 +146,7 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
           placeholder="Enter your address"
           placeholderTextColor="#8A8A8E"
           autoCapitalize="words"
-        />
-
-        {/* Email */}
-        <Text style={styles.label}>
-          Email
-        </Text>
-
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="Enter your email"
-          placeholderTextColor="#8A8A8E"
-          keyboardType="email-address"
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
+          />
 
         {/* Phone Number */}
         <Text style={styles.label}>
@@ -179,7 +160,7 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
           placeholder="Enter your phone number"
           placeholderTextColor="#8A8A8E"
           keyboardType="phone-pad"
-        />
+          />
 
         {/* Save Button */}
         <TouchableOpacity
@@ -190,24 +171,24 @@ export default function EditProfileScreen({onBack}: EditProfileScreenProps) {
           onPress={handleSave}
           disabled={saving}
           activeOpacity={0.8}
-        >
+          >
           <Text style={styles.saveButtonText}>
             {saving
               ? "Saving..."
-              : "Save Changes"}
+              : "Save"}
           </Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  );
-}
+  </SafeAreaView>
+)}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#F2F1F5",
   },
-
+  
   loadingContainer: {
     flex: 1,
     backgroundColor: "#F2F1F5",
@@ -274,7 +255,7 @@ const styles = StyleSheet.create({
   },
 
   saveButton: {
-    backgroundColor: "#5B2A6F",
+    backgroundColor: "#111111",
     borderRadius: 26,
     paddingVertical: 15,
     alignItems: "center",
