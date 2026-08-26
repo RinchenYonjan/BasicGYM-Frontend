@@ -1,12 +1,11 @@
+import { setToken } from "@/helper/tokenStorage";
 import axios from "axios";
 import AppConfig from "../config/app_config";
-
-import { setToken } from "@/helper/tokenStorage";
 
 
 export const loginUser = async(email:string, password:string)=>{
     try{
-        console.log("this is email",email);
+        console.log("This is email",email);
         console.log("This is password",password)
 
         const url = `${AppConfig.baseURL}/api/auth/login-user`;
@@ -18,7 +17,7 @@ export const loginUser = async(email:string, password:string)=>{
             password:password
         })
 
-        console.log("this is response",response.data);
+        console.log("This is response",response.data);
         console.log("This is data only from rseponse",response?.data?.data.token)
         const token = response?.data?.data.token;
 
