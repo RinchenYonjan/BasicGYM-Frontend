@@ -3,7 +3,7 @@ import ButtonComp from '@/components/Login Component/ButtonComp';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Toast from "react-native-toast-message";
 
 
@@ -31,14 +31,12 @@ export default function LoginScreen() {
       
     }catch(error:any) {
 
-      console.log('Login error:', error.response.data);
-      const message = error?.response?.data;
-      const errorMesage = message.message;
-      console.log("this is error Message",errorMesage);
+      const message = error?.response?.data?.message;
+      console.log("this is error Message",message);
 
       Toast.show({
         type:"error",
-        text1:errorMesage,
+        text1:message,
         position:"top",
         visibilityTime:3000,
         autoHide:true,
@@ -51,28 +49,8 @@ export default function LoginScreen() {
 
     <View style={styles.container}>
 
-      <Toast/>
-    
-      {/* ================= BACK BUTTON ================= */}
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.back()}
-        hitSlop={{
-          top: 10,
-          bottom: 10,
-          left: 10,
-          right: 10,
-        }}
-      >
-        <Ionicons
-          name="arrow-back"
-          size={24}
-          color="#000"
-        />
-      </TouchableOpacity>
+      <Toast/>    
 
-
-      {/* ================= HEADER ================= */}
       <View style={styles.header}>
         <Text style={styles.title}>GYM</Text>
 
@@ -87,6 +65,7 @@ export default function LoginScreen() {
 
         {/* Email */}
         <View style={styles.inputWrapper}>
+          
           <Ionicons
             name="mail"
             size={20}
@@ -133,8 +112,8 @@ export default function LoginScreen() {
               bottom: 10,
               left: 10,
               right: 10,
-            }}
-          >
+            }}>
+              
             <Ionicons
               name={showPassword ? 'eye' : 'eye-off'}
               size={20}
@@ -142,6 +121,11 @@ export default function LoginScreen() {
             />
           </TouchableOpacity>
         </View>
+
+        <Pressable style={styles.forgetBtn} onPress={() => {
+            router.push("/email-verify")}}>
+            <Text style={styles.forgetBtnText}>Forget?</Text>
+        </Pressable>
 
         {/* Login Button */}
         <ButtonComp onPress={handleLogin} />
@@ -218,5 +202,13 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#000',
   },
+
+  forgetBtn:{
+    marginBottom:12
+  },
+
+  forgetBtnText:{
+    textAlign:"right",
+  }
 
 });

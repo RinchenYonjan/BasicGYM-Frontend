@@ -13,7 +13,11 @@ export default function baseLayout() {
         }}
       />
 
-      <Toast />
+      <Toast 
+      position="top"
+      topOffset={60}
+      />
+
     </>
   );
 }

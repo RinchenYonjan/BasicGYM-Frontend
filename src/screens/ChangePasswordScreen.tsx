@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   confirmButton: {
     height: 57,
     borderRadius: 30,
-    backgroundColor: "#111111",
+    backgroundColor: "#5B2A6F",
     alignItems: "center",
     justifyContent: "center",
     marginTop: 27,
@@ -357,8 +357,8 @@ const styles = StyleSheet.create({
 
   confirmText: {
     color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 16,
+    fontWeight: "700",
   },
 
   disabledButton: {

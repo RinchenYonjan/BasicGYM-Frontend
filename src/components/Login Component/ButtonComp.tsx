@@ -14,7 +14,7 @@ export default function ButtonComp({ onPress }: ButtonCompProps) {
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: '#000',
+    backgroundColor: '#5B2A6F',
     height: 56,
     borderRadius: 28,
     justifyContent: 'center',

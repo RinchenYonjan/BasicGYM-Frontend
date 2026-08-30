@@ -1,87 +1,200 @@
-import { Feather, Ionicons } from '@expo/vector-icons'
-import { StyleSheet, Text, View } from 'react-native'
+import { Feather, Ionicons } from '@expo/vector-icons';
+import axios from 'axios';
+import { useEffect, useState } from 'react';
+import { StyleSheet, Text, View } from 'react-native';
 
-export default function SummaryCardComp(){
-    return (
+import { getToken } from '@/helper/tokenStorage';
+import baseURL from '../../config/app_config';
+
+export default function SummaryCardComp() {
+  const [planName, setPlanName] = useState('');
+  const [planPrice, setPlanPrice] = useState(0);
+  const [memberSince, setMemberSince] = useState('');
+  const [isActive, setIsActive] = useState(false);
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const token = await getToken();
+
+        const response = await axios.get(
+          `${baseURL}/api/user/get-user`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+
+        console.log('User data:', response.data);
+
+        const userData = response.data.data;
+
+        // User active status
+        setIsActive(userData.is_active);
+
+        // Membership / plan information
+        if (userData.member) {
+          setPlanName(userData.member.plan.plan_name);
+          setPlanPrice(userData.member.plan.plan_price);
+
+          const date = new Date(userData.member.createdAt);
+
+          setMemberSince(
+            date.toLocaleDateString('en-GB', {
+              day: '2-digit',
+              month: 'short',
+              year: 'numeric',
+            })
+          );
+        }
+      } catch (error) {
+        console.log('Failed to fetch user data:', error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  return (
     <View style={styles.membershipCard}>
-          <View style={styles.membershipTopRow}>
-            <View>
-              <Text style={styles.membershipLabel}>YOUR MEMBERSHIP</Text>
-              <Text style={styles.membershipPlan}>Premium Plan</Text>
-              <View style={styles.activePill}>
-                <View style={styles.activeDot} />
-                <Text style={styles.activeText}>Active</Text>
-              </View>
-            </View>
-            <View style={styles.crownBadge}>
-              <Ionicons name="ribbon-outline" size={26} color="#fffff" />
-            </View>
-          </View>
 
-          <View style={styles.divider} />
+      {/* TOP SECTION */}
+      <View style={styles.membershipTopRow}>
 
-          <View style={styles.membershipStatsRow}>
-            <View style={styles.membershipStatItem}>
-              <Feather name="calendar" size={16} color='#FFFFFF' />
-              <Text style={styles.membershipStatLabel}>Valid Until</Text>
-              <Text style={styles.membershipStatValue}>30 Sep 2026</Text>
-            </View>
-            <View style={styles.membershipStatItem}>
-              <Feather name="tag" size={16} color='#7C5CFC' />
-              <Text style={styles.membershipStatLabel}>Monthly Fee</Text>
-              <Text style={styles.membershipStatValue}>Rs. 2,500</Text>
-            </View>
-            <View style={styles.membershipStatItem}>
-              <Feather name="shield" size={16} color='#7C5CFC' />
-              <Text style={styles.membershipStatLabel}>Member Since</Text>
-              <Text style={styles.membershipStatValue}>01 Mar 2026</Text>
-            </View>
+        <View>
+          <Text style={styles.membershipLabel}>
+            YOUR MEMBERSHIP
+          </Text>
+
+          <Text style={styles.membershipPlan}>
+            {planName || 'No Plan'}
+          </Text>
+
+          {/* STATUS */}
+          <View style={styles.activePill}>
+
+            <View
+              style={{
+                width: 6,
+                height: 6,
+                borderRadius: 3,
+                backgroundColor: isActive
+                  ? '#22C55E'
+                  : '#EF4444',
+                marginRight: 6,
+              }}
+            />
+
+            <Text
+              style={{
+                color: isActive
+                  ? '#22C55E'
+                  : '#EF4444',
+                fontSize: 13,
+                fontWeight: '600',
+              }}
+            >
+              {isActive ? 'Active' : 'Inactive'}
+            </Text>
+
           </View>
         </View>
-    )
+
+        {/* ICON */}
+        <View style={styles.crownBadge}>
+          <Ionicons
+            name="ribbon-outline"
+            size={26}
+            color="#FFFFFF"
+          />
+        </View>
+
+      </View>
+
+      <View style={styles.divider} />
+
+      {/* MEMBERSHIP STATS */}
+      <View style={styles.membershipStatsRow}>
+
+        {/* MEMBER SINCE */}
+        <View style={styles.membershipStatItem}>
+
+          <Feather
+            name="calendar"
+            size={16}
+            color="#FFFFFF"
+          />
+
+          <Text style={styles.membershipStatLabel}>
+            Member Since
+          </Text>
+
+          <Text style={styles.membershipStatValue}>
+            {memberSince || 'N/A'}
+          </Text>
+
+        </View>
+
+        {/* MONTHLY FEE */}
+        <View style={styles.membershipStatItem}>
+
+          <Feather
+            name="tag"
+            size={16}
+            color="#7C5CFC"
+          />
+
+          <Text style={styles.membershipStatLabel}>
+            Monthly Fee
+          </Text>
+
+          <Text style={styles.membershipStatValue}>
+            Rs. {planPrice.toLocaleString()}
+          </Text>
+
+        </View>
+
+      </View>
+
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    membershipCard: {
+  membershipCard: {
     backgroundColor: '#12101E',
     borderRadius: 24,
     padding: 16,
     marginHorizontal: 12,
   },
+
   membershipTopRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
   },
+
   membershipLabel: {
     fontSize: 11,
     letterSpacing: 1,
     color: '#9995B0',
     fontWeight: '600',
   },
+
   membershipPlan: {
     fontSize: 22,
     fontWeight: '700',
     color: '#7C5CFC',
     marginTop: 6,
   },
+
   activePill: {
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: 8,
   },
-  activeDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#22C55E',
-    marginRight: 6,
-  },
-  activeText: {
-    color: '#22C55E',
-    fontSize: 13,
-    fontWeight: '600',
-  },
+
   crownBadge: {
     width: 48,
     height: 48,
@@ -90,28 +203,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
   divider: {
     height: 1,
     backgroundColor: 'rgba(255,255,255,0.1)',
     marginVertical: 10,
   },
+
   membershipStatsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+
   membershipStatItem: {
     flex: 1,
   },
+
   membershipStatLabel: {
     color: '#9995B0',
     fontSize: 12,
     marginTop: 8,
     marginBottom: 4,
   },
+
   membershipStatValue: {
     color: '#FFFFFF',
     fontSize: 14,
     fontWeight: '700',
-  }
-
-})
+  },
+});

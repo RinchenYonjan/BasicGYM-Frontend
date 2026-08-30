@@ -55,7 +55,9 @@ export default function TabLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
+
           title: "Dashboard",
+          
            tabBarIcon: ({ color, size, focused }) => (
         <Ionicons
           name={focused ? "home" : "home-outline"}
@@ -90,6 +92,16 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen name="change-password" options={{
+        href:null
+      }}>
+     </Tabs.Screen>
+
+      <Tabs.Screen name="edit-profile" options={{
+        href:null
+      }}>
+      </Tabs.Screen>
 
     </Tabs>
   );

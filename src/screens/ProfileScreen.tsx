@@ -1,7 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, Image, ScrollView, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View, } from "react-native";
+import { ActivityIndicator, Image, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getUserProfile } from "../services/ProfileService";
 
@@ -166,10 +166,6 @@ export default function ProfileScreen() {
         barStyle="dark-content"
         backgroundColor="#F2F1F5"/>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-
         {/* Avatar */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrapper}>
@@ -276,7 +272,6 @@ export default function ProfileScreen() {
             Log out
           </Text>
         </TouchableOpacity>
-      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -285,6 +280,8 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F2F1F5",
+    paddingHorizontal: 18,
+    paddingBottom: 24
   },
 
   loadingContainer: {
@@ -292,11 +289,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#F2F1F5",
     alignItems: "center",
     justifyContent: "center",
-  },
-
-  scrollContent: {
-    paddingHorizontal: 18,
-    paddingBottom: 24,
   },
 
   avatarSection: {
