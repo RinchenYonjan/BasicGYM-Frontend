@@ -47,14 +47,14 @@ export default function CreatePasswordScreen() {
   const handleContinue = () => {
     if (!allMet) return;
     // proceed with `password`
-    router.push("/(auth)/dashboard");
+    router.push("/(tabs)/dashboard");
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-    >
+      behavior={Platform.OS === "ios" ? "padding" : undefined}>
+
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -71,9 +71,9 @@ export default function CreatePasswordScreen() {
 
         <TouchableOpacity
           style={styles.iconButton}
-          onPress={() => router.back()}
-          activeOpacity={0.7}
-        >
+          onPress={() => router.replace("/login")}
+          activeOpacity={0.7}>
+
           <Ionicons name="close" size={26} color="#111111" />
         </TouchableOpacity>
       </View>
@@ -81,8 +81,8 @@ export default function CreatePasswordScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+        showsVerticalScrollIndicator={false}>
+
         <Text style={styles.title}>Password</Text>
         <Text style={styles.subtitle}>Create a unique password</Text>
 
@@ -162,13 +162,15 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#FFFFFF",
+    paddingHorizontal: 24,
+    paddingTop: 30,
+    paddingBottom: 32,
   },
 
   header: {
     height: 60,
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 15,
     gap: 12,
   },
 

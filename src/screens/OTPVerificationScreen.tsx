@@ -66,7 +66,6 @@ export default function OtpVerificationScreen() {
   };
 
   const handleClose = () => {
-    // Exiting the forgot-password flow entirely — adjust destination as needed
     router.replace('/login');
   };
 
@@ -148,9 +147,10 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
-    paddingTop: 60,
+    paddingTop: 30,
     paddingBottom: 32,
   },
+  
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

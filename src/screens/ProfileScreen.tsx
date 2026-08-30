@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useState } from "react";
 import { ActivityIndicator, Image, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { getUserProfile } from "../services/ProfileService";
 
 function SectionLabel({text}:{text: string;}) {
@@ -161,7 +160,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <View style={styles.safeArea}>
       <StatusBar
         barStyle="dark-content"
         backgroundColor="#F2F1F5"/>
@@ -272,14 +271,12 @@ export default function ProfileScreen() {
             Log out
           </Text>
         </TouchableOpacity>
-    </SafeAreaView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: {
-    flex: 1,
-    backgroundColor: "#F2F1F5",
     paddingHorizontal: 18,
     paddingBottom: 24
   },

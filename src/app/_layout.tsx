@@ -1,23 +1,14 @@
 import { Stack } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
-export default function baseLayout() {
+export default function RootLayout() {
   return (
-    <>
-      <Stack
-        screenOptions={{
-          contentStyle: {
-            backgroundColor: "#fff",
-          },
-          headerShown: false,
-        }}
-      />
-
-      <Toast 
-      position="top"
-      topOffset={60}
-      />
-
-    </>
+    <SafeAreaProvider>
+      <>
+        <Stack screenOptions={{headerShown: false}}/>
+        <Toast />
+      </>
+    </SafeAreaProvider>
   );
 }

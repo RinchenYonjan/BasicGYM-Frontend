@@ -29,7 +29,6 @@ export const loginUser = async(email:string, password:string)=>{
     }catch(err:any){
 
         console.log("this is error",err);
-        console.log("error message:", err?.message);
         console.log("error response:", err?.response?.data);
         throw err;
 

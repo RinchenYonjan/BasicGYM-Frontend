@@ -43,7 +43,7 @@ export default function EmailVerificationScreen() {
         type: "error",
         text1: "Invalid Email",
         text2: "Please enter a valid email address.",
-        visibilityTime:3000,
+        visibilityTime:1500,
         autoHide:true,
       });
       return;
@@ -67,13 +67,15 @@ export default function EmailVerificationScreen() {
       Toast.show({
         type: "success",
         text1: "OTP Sent",
-        text2: response.data?.message || "Please check your email for the verification code.",
-        visibilityTime:3000,
+        text2: "Please check your email for the verification code.",
+        visibilityTime:1500,
         autoHide:true,
       });
 
       // Give Toast time to appear
       setTimeout(() => {
+        Toast.hide();
+
         router.push({
           pathname: "/otp-verify",
           params: {
@@ -82,7 +84,7 @@ export default function EmailVerificationScreen() {
             totalSteps: String(TOTAL_STEPS),
           },
         });
-      }, 1000);
+      }, 1500);
 
     } catch (error: any) {
 
@@ -95,15 +97,14 @@ export default function EmailVerificationScreen() {
       if (error?.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error?.message === "Network Error") {
-        errorMessage =
-          "Unable to connect to the server. Please check your connection.";
+        errorMessage = "Unable to connect to the server. Please check your connection.";
       }
 
       Toast.show({
         type: "error",
         text1: "Unable to Send OTP",
         text2: errorMessage,
-        visibilityTime:3000,
+        visibilityTime:1500,
         autoHide:true,
       });
 
@@ -121,7 +122,6 @@ export default function EmailVerificationScreen() {
       style={styles.container}
       behavior={Platform.OS === "ios" ? "padding" : undefined}>
 
-        <Toast/>   
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         keyboardShouldPersistTaps="handled">
@@ -137,14 +137,14 @@ export default function EmailVerificationScreen() {
               name="arrow-back"
               size={24}
               color="#1F1F1F"
-            />
+              />
           </TouchableOpacity>
 
           <StepProgressBar
             currentStep={CURRENT_STEP}
             totalSteps={TOTAL_STEPS}
             color="#5B2A6F"
-          />
+            />
 
           <TouchableOpacity
             style={styles.iconButton}
@@ -154,7 +154,7 @@ export default function EmailVerificationScreen() {
               name="close"
               size={24}
               color="#1F1F1F"
-            />
+              />
           </TouchableOpacity>
         </View>
 
@@ -167,7 +167,7 @@ export default function EmailVerificationScreen() {
               name="mail-outline"
               size={42}
               color="#5B2A6F"
-            />
+              />
           </View>
 
           {/* Title */}
@@ -192,7 +192,7 @@ export default function EmailVerificationScreen() {
               name="mail-outline"
               size={20}
               color="#888"
-            />
+              />
 
             <TextInput
               style={styles.input}
@@ -204,7 +204,7 @@ export default function EmailVerificationScreen() {
               autoCapitalize="none"
               autoCorrect={false}
               editable={!loading}
-            />
+              />
           </View>
 
           {/* Button */}
@@ -215,7 +215,7 @@ export default function EmailVerificationScreen() {
             ]}
             onPress={handleSendOtp}
             disabled={loading}
-          >
+            >
             {loading ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
@@ -228,7 +228,7 @@ export default function EmailVerificationScreen() {
                   name="arrow-forward"
                   size={20}
                   color="#FFFFFF"
-                />
+                  />
               </>
             )}
           </TouchableOpacity>
@@ -240,7 +240,7 @@ export default function EmailVerificationScreen() {
           </Text>
 
         </View>
-      </ScrollView>
+      </ScrollView>   
     </KeyboardAvoidingView>
   );
 }
@@ -256,7 +256,7 @@ const styles = StyleSheet.create({
   },
 
   headerRow: {
-    marginTop: 55,
+    marginTop: 30,
     marginHorizontal: 24,
     flexDirection: "row",
     alignItems: "center",

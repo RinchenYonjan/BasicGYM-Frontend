@@ -2,7 +2,6 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { editUserProfile, getUserProfile } from "../services/ProfileService";
 
 
@@ -86,8 +85,6 @@ export default function EditProfileScreen(){
   }
 
   return (
-    <SafeAreaView style={styles.container}>
-
     <KeyboardAvoidingView behavior={
       Platform.OS === "ios"
       ? "padding"
@@ -180,15 +177,9 @@ export default function EditProfileScreen(){
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
-  </SafeAreaView>
 )}
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F2F1F5",
-  },
-  
+const styles = StyleSheet.create({ 
   loadingContainer: {
     flex: 1,
     backgroundColor: "#F2F1F5",
