@@ -1,10 +1,9 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getToken } from '@/helper/tokenStorage';
-import baseURL from '../../config/app_config';
+import { getUserProfile } from '@/services/ProfileService';
 
 export default function SummaryCardComp() {
   const [planName, setPlanName] = useState('');
@@ -15,30 +14,24 @@ export default function SummaryCardComp() {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token = await getToken();
+        await getToken();
 
-        const response = await axios.get(
-          `${baseURL}/api/user/get-user`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const t = await getUserProfile();        
 
-        console.log('User data:', response.data);
+        const userData = t?.data;
 
-        const userData = response.data.data;
+        console.log("This is userdata",userData);
 
         // User active status
         setIsActive(userData.is_active);
 
         // Membership / plan information
-        if (userData.member) {
-          setPlanName(userData.member.plan.plan_name);
-          setPlanPrice(userData.member.plan.plan_price);
+        if (userData.members) {
 
-          const date = new Date(userData.member.createdAt);
+          setPlanName(userData?.members[0]?.plan.plan_name);
+          setPlanPrice(userData?.members[0]?.plan?.plan_price);
+
+          const date = new Date(userData.members[0].createdAt);
 
           setMemberSince(
             date.toLocaleDateString('en-GB', {
@@ -48,8 +41,9 @@ export default function SummaryCardComp() {
             })
           );
         }
-      } catch (error) {
-        console.log('Failed to fetch user data:', error);
+
+      } catch (error:any) {
+        console.log('Failed to fetch user data:', error?.message);
       }
     };
 

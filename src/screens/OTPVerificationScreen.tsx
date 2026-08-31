@@ -13,14 +13,20 @@ import {
   View,
 } from 'react-native';
 
+import { sendOtp, verifyOtp } from '@/api/auth.api';
 import StepProgressBar from '@/components/Login Component/StepProgressBar';
+import Toast from 'react-native-toast-message';
 
 const OTP_LENGTH = 4;
 const PURPLE = '#5B2A6F';
 
 export default function OtpVerificationScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ step?: string; totalSteps?: string }>();
+  const params = useLocalSearchParams<{ step?: string; totalSteps?: string;email:string }>();
+
+  const [message,setMessage] = useState()
+
+  console.log("this is params",params.email);
 
   // Falls back to step 2 of 3 if navigated to directly without params
   const currentStep = Number(params.step) || 2;
@@ -48,21 +54,68 @@ export default function OtpVerificationScreen() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const code = otp.join('');
     if (code.length < OTP_LENGTH) return;
 
     // TODO: verify code with your backend
-    router.push({
+
+    try{
+
+      const response_from_otp_api = await verifyOtp(params.email,code);
+      Toast.show({
+        type:"success",
+        text1:response_from_otp_api,
+        visibilityTime:1500,
+        autoHide:true
+      })
+        router.push({
       pathname: '/create-password',
       params: { step: '3', totalSteps: String(totalSteps) },
     });
+
+    }catch(err:any){
+
+      Toast.show({
+        type:"error",
+        text1:err?.response?.data?.message,
+        visibilityTime:1500,
+        autoHide:true
+      })
+
+
+    }
   };
 
-  const handleResend = () => {
+  const handleResend = async() => {
     setOtp(Array(OTP_LENGTH).fill(''));
     inputsRef.current[0]?.focus();
-    // TODO: trigger resend OTP API call
+
+    const email = params?.email;
+    if(!email){
+      // emial halne path ko route ko naam
+    }
+
+    try{
+      const res = await sendOtp(email);
+      console.log("this is response from handleresent",res);
+      Toast.show({
+        type:"success",
+        text1:res,
+        autoHide:true,
+        visibilityTime:1500
+      })
+
+    }catch(err:any){
+      console.error("this is error",err?.response);
+      Toast.show({
+        type:"error",
+        text1:"something went wrong please try later",
+        autoHide:true,
+        visibilityTime:1500
+
+      })
+    }
   };
 
   const handleClose = () => {

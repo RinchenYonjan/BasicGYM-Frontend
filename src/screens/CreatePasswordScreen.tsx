@@ -12,7 +12,7 @@ import {
   View,
 } from "react-native";
 
-const PURPLE = "#6B3FF2";
+const PURPLE = "#5B2A6F";
 const GREEN = "#22C55E";
 const GREEN_BG = "#DCFCE7";
 
@@ -175,8 +175,10 @@ const styles = StyleSheet.create({
   },
 
   iconButton: {
-    width: 36,
-    height: 36,
+    width: 45,
+    height: 45,
+    borderRadius: 12,
+    backgroundColor: '#F5F3F6',
     alignItems: "center",
     justifyContent: "center",
   },

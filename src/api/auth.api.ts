@@ -36,4 +36,38 @@ export const loginUser = async(email:string, password:string)=>{
 
 }
 
+export const verifyOtp = async(email:string,otp:string)=>{
+    try{
+        const url = `${AppConfig.baseURL}/api/auth/verify-otp`;
 
+        const response = await axios.post(url,{
+            email,
+            otp
+        })
+
+        console.log("this is response",response?.data?.message);
+        return response?.data?.message;
+    
+    }catch(err:any){
+
+        console.log("this is error",err.response.data.message);
+        throw err;
+
+    }
+}
+
+export const sendOtp =async(email:string)=>{
+    const url = `${AppConfig.baseURL}/api/auth/send-otp`;
+
+    try{
+        const response = await axios.post(url,{
+            email
+        })
+        console.log("this is repsonse from sendotp",response.data);
+        return response?.data?.message;
+
+    }catch(err:any){
+        console.error("this is error from sendotp",err?.response.data);
+        throw err;
+    }
+}

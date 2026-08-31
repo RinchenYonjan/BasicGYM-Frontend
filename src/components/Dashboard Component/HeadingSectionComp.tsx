@@ -24,10 +24,7 @@ export default function HeaderComp() {
 
         } catch (error: any) {
 
-            console.log(
-                "Header profile error:",
-                error?.response?.data || error?.message || error
-            );
+            console.log("Header profile error:",error?.response?.data || error?.message || error);
 
         }
     };
