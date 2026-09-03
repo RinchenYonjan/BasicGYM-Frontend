@@ -80,6 +80,7 @@ export default function EmailVerificationScreen() {
           pathname: "/otp-verify",
           params: {
             email: normalizedEmail,
+            username: response.data.username || "",
             step: "2",
             totalSteps: String(TOTAL_STEPS),
           },
@@ -235,7 +236,7 @@ export default function EmailVerificationScreen() {
 
           {/* Info */}
           <Text style={styles.infoText}>
-            We'll send a 6-digit verification code to
+            We'll send a 4-digit verification code to
             your email address.
           </Text>
 

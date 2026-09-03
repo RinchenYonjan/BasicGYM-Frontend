@@ -97,3 +97,9 @@ export const changeUserPassword = async(currentPassword: string, newPassword: st
 
   }
 };
+
+// html
+
+//ui code + ts code --> tsx()
+
+// ts code --> ts

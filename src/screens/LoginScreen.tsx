@@ -30,7 +30,6 @@ export default function LoginScreen() {
   // Double back press to exit
   useEffect(() => {
     const backAction = () => {
-      // If user already pressed back once
       if (backPressedOnce.current) {
         Toast.hide();
         BackHandler.exitApp();

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
@@ -10,41 +11,22 @@ export default function EditProfileScreen(){
   const [username, setUsername] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
   const [address, setAddress] = useState("");
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  useEffect(() => {
-    fetchProfile();
-  }, []);
+  const queryClient = useQueryClient();
+  const {data,isPending,error} = useQuery({
+    queryKey:["profile"],
+    queryFn:getUserProfile,
+  })
 
-  const fetchProfile = async () => {
-    try {
-      setLoading(true);
-
-      const response = await getUserProfile();
-
-      console.log("Profile data:",response);
-
-      const data = response?.data;
-
-      if (!data) {
-        console.log("No profile data found");
-        return;
-      }
-
-      setUsername(data.username ?? "");
-      setPhonenumber(data.phonenumber ?? "");
-      setAddress(data.address ?? "");
-
-    }catch(error:any){
-
-      console.log("Edit profile fetch error:",error?.response?.data || error?.message || error);
-
-    }finally{
-
-      setLoading(false);
+  useEffect(()=>{
+    if(data){
+      setUsername(data?.data?.username ?? "");
+      setPhonenumber(data?.data?.phonenumber ?? "");
+      setAddress(data?.data?.address ?? "");
     }
-  };
+
+  },[data])
 
   const handleSave = async () => {
     try{
@@ -57,6 +39,9 @@ export default function EditProfileScreen(){
       );
 
       console.log("Profile updated:",response);
+      await queryClient.invalidateQueries({
+        queryKey:["profile"]
+      })
 
       // Go back to ProfileScreen
       router.back();
@@ -72,7 +57,20 @@ export default function EditProfileScreen(){
     }
   };
 
-  if (loading) {
+  const mutation = useMutation({
+    mutationFn:handleSave,
+    onSuccess:async (data)=>{
+      console.log("Profile updated successfully");
+      await queryClient.invalidateQueries({
+        queryKey:["profile"]
+      })
+    },
+    onError:(error:any)=>{
+      console.log("Error updating profile:",error?.response?.data || error?.message || error);
+    }
+  })
+
+  if (isPending) {
 
     return (
       <View style={styles.loadingContainer}>
@@ -82,6 +80,10 @@ export default function EditProfileScreen(){
       </View>
     );
   
+  }
+
+  if(error){
+    // Toas
   }
 
   return (
@@ -165,7 +167,7 @@ export default function EditProfileScreen(){
             styles.saveButton,
             saving && styles.disabledButton,
           ]}
-          onPress={handleSave}
+          onPress={() => mutation.mutate()}
           disabled={saving}
           activeOpacity={0.8}
           >

@@ -1,7 +1,9 @@
+import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
-import { ActivityIndicator, Image, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { router } from "expo-router";
+import { useEffect, useState } from "react";
+import { Image, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
 import { getUserProfile } from "../services/ProfileService";
 
 function SectionLabel({text}:{text: string;}) {
@@ -110,54 +112,81 @@ export default function ProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
 
-  useFocusEffect(
-  useCallback(() => {
-    fetchProfile();
-  }, [])
-);
 
-  const fetchProfile = async () => {
-    try{
-      setLoading(true);
+const {data,isPending,error} = useQuery({
+  queryKey:["profile"],
+  queryFn: getUserProfile,
+})
+console.log("this is query data",data);
 
-      const response = await getUserProfile();
-      console.log("Profile screen response:",response);
-      const data = response?.data;
+useEffect(() => {
+  if(data){
+    console.log("Profile data:", data.data);
 
-      if (!data) {
-        console.log("Profile data not found");
-        return;
-      }
-
-      setProfile({
-        name: data.username ?? "",
-        address: data.address ?? "",
-        email: data.email ?? "",
-        phoneNumber: data.phonenumber ?? "",
-      });
-
-    }catch(error:any){
-
-      console.log("Profile screen error:",error?.response?.data || error?.message || error);
-      
-      if(error?.response?.status === 401){
-        router.replace("/login");
-      }
-
-    }finally{
-      setLoading(false);
-    }
-  };
-
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator
-          size="large"
-          color="#5B2A6F"/>
-      </View>
-    );
+    setProfile({
+      name: data?.data?.username ?? "",
+      address: data?.data?.address ?? "",
+      email: data?.data?.email ?? "",
+      phoneNumber: data?.data?.phonenumber ?? "",
+    });
   }
+}, [data]);
+
+
+if(isPending){
+  return(
+    <LoadingScreen/>
+  )
+}
+
+//   useFocusEffect(
+//   // useCallback(() => {
+//   //   // fetchProfile();
+//   // }, [])
+// );
+
+  // const fetchProfile = async () => {
+  //   try{
+  //     setLoading(true);
+
+  //     const response = await getUserProfile();
+  //     console.log("Profile screen response:",response);
+  //     const data = response?.data;
+
+  //     if (!data) {
+  //       console.log("Profile data not found");
+  //       return;
+  //     }
+
+  //     setProfile({
+  //       name: data.username ?? "",
+  //       address: data.address ?? "",
+  //       email: data.email ?? "",
+  //       phoneNumber: data.phonenumber ?? "",
+  //     });
+
+  //   }catch(error:any){
+
+  //     console.log("Profile screen error:",error?.response?.data || error?.message || error);
+      
+  //     if(error?.response?.status === 401){
+  //       router.replace("/login");
+  //     }
+
+  //   }finally{
+  //     setLoading(false);
+  //   }
+  // };
+
+  // if (loading) {
+  //   return (
+  //     <View style={styles.loadingContainer}>
+  //       <ActivityIndicator
+  //         size="large"
+  //         color="#5B2A6F"/>
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={styles.safeArea}>

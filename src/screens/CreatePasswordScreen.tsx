@@ -1,3 +1,4 @@
+import { createUserPassword } from "@/api/auth.api";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
@@ -9,8 +10,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+import Toast from "react-native-toast-message";
 
 const PURPLE = "#5B2A6F";
 const GREEN = "#22C55E";
@@ -44,11 +46,38 @@ export default function CreatePasswordScreen() {
 
   const allMet = REQUIREMENTS.every((r) => r.test(password));
 
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!allMet) return;
-    // proceed with `password`
+    
+  try{
+
+    const response = await createUserPassword(password);
+
+    console.log("Password created successfully:", response?.message || "Password created successfully");
+    
+    Toast.show({
+      type: "success",
+      text1: "Password created successfully",
+      position: "top",
+      visibilityTime: 1500,
+      autoHide: true
+    })
+      
     router.push("/(tabs)/dashboard");
-  };
+    
+  }catch(error:any){  
+
+    Toast.show({
+      type:"error",
+      text1:error?.response?.data?.message,
+      position:"top",
+      visibilityTime:1500,
+      autoHide:true,      
+    })
+    
+     console.log("This is error from create password screen",error?.response?.data);
+  }
+};
 
   return (
     <KeyboardAvoidingView
