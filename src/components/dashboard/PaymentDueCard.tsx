@@ -1,7 +1,7 @@
 import { Feather, Ionicons } from '@expo/vector-icons'
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 
-export default function PaymentDueCardComp(){
+export default function PaymentDueCard(){
     return(
         <View style={styles.paymentCard}>
           <View>

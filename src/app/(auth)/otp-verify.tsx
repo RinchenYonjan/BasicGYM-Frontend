@@ -1,5 +1,5 @@
-import OtpVerificationScreen from "@/screens/OTPVerificationScreen";
+import OtpVerificationScreen from "@/screens/authentication/OTPVerification";
 
-export default function EditProfile() {
+export default function OtpVerify() {
   return <OtpVerificationScreen />;
 }

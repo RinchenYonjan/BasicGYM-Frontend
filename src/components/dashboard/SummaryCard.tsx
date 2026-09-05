@@ -5,7 +5,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { getToken } from '@/helper/tokenStorage';
 import { getUserProfile } from '@/services/ProfileService';
 
-export default function SummaryCardComp() {
+export default function SummaryCard() {
   const [planName, setPlanName] = useState('');
   const [planPrice, setPlanPrice] = useState(0);
   const [memberSince, setMemberSince] = useState('');

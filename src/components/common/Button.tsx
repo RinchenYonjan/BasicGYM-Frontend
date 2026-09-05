@@ -4,7 +4,7 @@ type ButtonCompProps = {
   onPress: () => void;
 };
 
-export default function ButtonComp({ onPress }: ButtonCompProps) {
+export default function Button({ onPress }: ButtonCompProps) {
   return (
     <TouchableOpacity style={styles.button} onPress={onPress}>
       <Text style={styles.text}>Login</Text>

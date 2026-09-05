@@ -1,5 +1,5 @@
-import EmailVerificationScreen from "@/screens/EmailVerificationScreen";
+import EmailVerificationScreen from "@/screens/authentication/EmailVerification";
 
-export default function EditProfile() {
+export default function EmailVerify() {
   return <EmailVerificationScreen/>;
 }

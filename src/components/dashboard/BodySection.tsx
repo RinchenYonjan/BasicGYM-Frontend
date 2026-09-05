@@ -9,7 +9,7 @@ interface OverviewItem {
 }
 
 
-export default function BodySectionComp() {
+export default function BodySection() {
   const overviewItems: OverviewItem[] = [
     {
       icon: <MaterialCommunityIcons name="dumbbell" size={22} color='#7C5CFC' />,

@@ -1,11 +1,13 @@
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import BodySection from "@/components/dashboard/BodySection";
+import PaymentDueCard from "@/components/dashboard/PaymentDueCard";
+import RecentPayment from "@/components/dashboard/RecentPayment";
+import SummaryCard from "@/components/dashboard/SummaryCard";
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-
+import { Image, StyleSheet, Text, View } from "react-native";
 import { getUserProfile } from '../../services/ProfileService';
 
-export default function HeaderComp() {
+export default function DashboardScreen() {
 
     const [username, setUsername] = useState('');
 
@@ -35,24 +37,12 @@ export default function HeaderComp() {
         }, [])
     );
 
-    return (
+return (
+    <View style={{flex:1}}>
+
         <View style={styles.container}>
 
             <View>
-
-                <View style={styles.greetingRow}>
-
-                    <Text style={styles.profileHeader}>
-                        Good Morning
-                    </Text>
-
-                    <MaterialCommunityIcons
-                        name="hand-wave"
-                        size={18}
-                        color="#F59E0B"
-                    />
-
-                </View>
 
                 <Text style={styles.profileName}>
                     {username || "User"}
@@ -77,9 +67,13 @@ export default function HeaderComp() {
 
             </View>
 
-        </View>
-    );
-}
+    </View>
+        <SummaryCard/>
+        <PaymentDueCard/>
+        <BodySection/>
+        <RecentPayment/>
+    </View>
+)}
 
 const styles = StyleSheet.create({
 
@@ -87,11 +81,6 @@ const styles = StyleSheet.create({
         margin: 14,
         flexDirection: "row",
         justifyContent: "space-between",
-        alignItems: "center",
-    },
-
-    greetingRow: {
-        flexDirection: "row",
         alignItems: "center",
     },
 

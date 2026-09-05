@@ -2,7 +2,7 @@ import { Feather } from '@expo/vector-icons';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 
-export default function RecentPaymentComp(){
+export default function RecentPayment(){
     const payments = [
     {
       title: 'Membership Fee',
@@ -22,7 +22,7 @@ export default function RecentPaymentComp(){
   ];
 
     return(
-      <View style={{marginHorizontal: 12}}>
+      <View style={{marginHorizontal: 12, flex:1}}>
         <Text style={styles.sectionTitle}>Recent Payment</Text>
 
       <ScrollView style={{ height: 200 }}

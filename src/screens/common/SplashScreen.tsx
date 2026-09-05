@@ -87,7 +87,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
     >
       <View style={styles.content}>
         <Animated.Image
-          source={require('../../assets/app-logo.png')}
+          source={require('../../../assets/app-logo.png')}
           resizeMode="contain"
           style={[
             styles.icon,
@@ -109,7 +109,7 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
             },
           ]}
         >
-          GET FIT
+          Basic Gym
         </Animated.Text>
       </View>
     </LinearGradient>

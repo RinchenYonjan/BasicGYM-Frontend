@@ -1,6 +1,6 @@
 // src/app/otp-verification.tsx
 import { sendOtp, verifyOtp } from '@/api/auth.api';
-import StepProgressBar from '@/components/Login Component/StepProgressBar';
+import StepProgressBar from '@/components/login/ProgressBar';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
@@ -171,7 +171,7 @@ export default function OtpVerificationScreen() {
 
       <View style={styles.illustrationWrap}>
         <Image
-          source={require('../../assets/otp-illustration.png')}
+          source={require('../../../assets/otp-illustration.png')}
           resizeMode="contain"
           style={styles.illustration}
         />

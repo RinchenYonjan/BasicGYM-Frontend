@@ -1,5 +1,5 @@
-import SplashScreen from "@/screens/SplashScreen";
+import SplashScreen from "@/screens/common/SplashScreen";
 
-export default function EditProfile() {
+export default function Splash() {
   return <SplashScreen/>;
 }

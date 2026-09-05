@@ -6,7 +6,7 @@ type Props = {
   color?: string;
 };
 
-export default function StepProgressBar({
+export default function ProgressBar({
   currentStep,
   totalSteps,
   color = "#5B2A6F",

@@ -1,4 +1,4 @@
-import LoginScreen from "@/screens/LoginScreen";
+import LoginScreen from "@/screens/authentication/Login";
 import { StyleSheet, View } from "react-native";
 
 export default function login(){

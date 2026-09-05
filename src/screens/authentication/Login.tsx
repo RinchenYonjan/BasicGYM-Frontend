@@ -1,5 +1,5 @@
 import { loginUser } from "@/api/auth.api";
-import ButtonComp from "@/components/Login Component/ButtonComp";
+import Button from "@/components/common/Button";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -71,6 +71,18 @@ export default function LoginScreen() {
 
   const handleLogin = async () => {
     try {
+
+      if(!email || !password){
+        Toast.show({
+          type: "error",
+          text1: "Empty Fields",
+          text2: "Please enter both email and password.", 
+          visibilityTime:1500,
+          autoHide:true
+        })
+        return;
+      }
+
       const res = await loginUser(email, password);
 
       console.log("this is response only", res.data);
@@ -79,7 +91,8 @@ export default function LoginScreen() {
       if (res.data.token) {
         Toast.show({
           type: "success",
-          text1: "Logged in successfully",
+          text1: "Login successful",
+          text2: "Welcome back!",
           autoHide: true,
           visibilityTime: 1500,
         });
@@ -89,13 +102,14 @@ export default function LoginScreen() {
     } catch (error: any) {
       const message =
         error?.response?.data?.message ||
-        "Something went wrong. Please try again.";
+        "Something went wrong. Please try again later.";
 
       console.log("this is error Message", message);
 
       Toast.show({
         type: "error",
-        text1: message,
+        text1: "Server error (500)",
+        text2: message,
         position: "top",
         visibilityTime: 1500,
         autoHide: true,
@@ -107,10 +121,10 @@ export default function LoginScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>GYM</Text>
+        <Text style={styles.title}>Basic</Text>
 
         <Text style={styles.subtitle}>
-          Fitness App
+          Gym App
         </Text>
       </View>
 
@@ -186,7 +200,7 @@ export default function LoginScreen() {
         </Pressable>
 
         {/* Login Button */}
-        <ButtonComp onPress={handleLogin} />
+        <Button onPress={handleLogin} />
       </View>
     </View>
   );

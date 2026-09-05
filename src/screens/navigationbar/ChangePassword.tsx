@@ -1,9 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { changeUserPassword } from "../services/ProfileService";
+import { changeUserPassword } from "../../services/ProfileService";
 
 
 type PasswordInputProps = {
@@ -251,6 +251,11 @@ export default function ChangePasswordScreen() {
             </Text>
           )}
         </TouchableOpacity>
+
+        <Pressable onPress={() => router.push("/email-verify")}>
+          <Text style={{alignSelf: 'center', margin: 24, color: '#c30303', fontWeight: '700'}}>Forget?</Text>
+        </Pressable>
+        
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -301,7 +306,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingHorizontal: 27,
     paddingVertical: 14,
-    marginTop: 29,
+    marginTop: 8,
     marginBottom: 49,
     minHeight: 125,
   },
@@ -322,7 +327,7 @@ const styles = StyleSheet.create({
 
   inputWrapper: {
     position: "relative",
-    marginBottom: 31,
+    marginBottom: 24,
   },
 
   input: {

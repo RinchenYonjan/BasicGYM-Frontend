@@ -1,5 +1,5 @@
-import CreatePasswordScreen from "@/screens/CreatePasswordScreen";
+import CreatePasswordScreen from "@/screens/authentication/CreatePassword";
 
-export default function EditProfile() {
+export default function CreatePassword() {
   return <CreatePasswordScreen/>;
 }

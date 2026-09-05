@@ -1,10 +1,11 @@
 import { LoadingScreen } from "@/components/common/LoadingScreen";
 import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
-import { getUserProfile } from "../services/ProfileService";
+import { getUserProfile } from "../../services/ProfileService";
 
 function SectionLabel({text}:{text: string;}) {
   return (
@@ -34,7 +35,7 @@ function InfoRow({label,value,isLast}:{
         style={styles.infoValue}
         numberOfLines={1}>
 
-        {value || "-"}
+        {value || "data not available"}
       </Text>
     </View>
   );
@@ -110,19 +111,14 @@ export default function ProfileScreen() {
     email: "",
     phoneNumber: "",
   });
-  const [loading, setLoading] = useState(true);
 
+  const {data,isPending} = useQuery({
+    queryKey:["profile"],
+    queryFn: getUserProfile,
+  })
 
-const {data,isPending,error} = useQuery({
-  queryKey:["profile"],
-  queryFn: getUserProfile,
-})
-console.log("this is query data",data);
-
-useEffect(() => {
-  if(data){
-    console.log("Profile data:", data.data);
-
+  useEffect(() => {
+    if(data){
     setProfile({
       name: data?.data?.username ?? "",
       address: data?.data?.address ?? "",
@@ -132,63 +128,13 @@ useEffect(() => {
   }
 }, [data]);
 
-
 if(isPending){
   return(
     <LoadingScreen/>
   )
 }
 
-//   useFocusEffect(
-//   // useCallback(() => {
-//   //   // fetchProfile();
-//   // }, [])
-// );
-
-  // const fetchProfile = async () => {
-  //   try{
-  //     setLoading(true);
-
-  //     const response = await getUserProfile();
-  //     console.log("Profile screen response:",response);
-  //     const data = response?.data;
-
-  //     if (!data) {
-  //       console.log("Profile data not found");
-  //       return;
-  //     }
-
-  //     setProfile({
-  //       name: data.username ?? "",
-  //       address: data.address ?? "",
-  //       email: data.email ?? "",
-  //       phoneNumber: data.phonenumber ?? "",
-  //     });
-
-  //   }catch(error:any){
-
-  //     console.log("Profile screen error:",error?.response?.data || error?.message || error);
-      
-  //     if(error?.response?.status === 401){
-  //       router.replace("/login");
-  //     }
-
-  //   }finally{
-  //     setLoading(false);
-  //   }
-  // };
-
-  // if (loading) {
-  //   return (
-  //     <View style={styles.loadingContainer}>
-  //       <ActivityIndicator
-  //         size="large"
-  //         color="#5B2A6F"/>
-  //     </View>
-  //   );
-  // }
-
-  return (
+return (
     <View style={styles.safeArea}>
       <StatusBar
         barStyle="dark-content"
@@ -292,7 +238,8 @@ if(isPending){
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.85}
-          onPress={() => {
+          onPress={async () => {
+            await AsyncStorage.removeItem("token");
             router.replace("/login");
           }}>
 

@@ -1,4 +1,4 @@
-import StepProgressBar from "@/components/Login Component/StepProgressBar";
+import StepProgressBar from "@/components/login/ProgressBar";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
 import { router } from "expo-router";
@@ -15,7 +15,7 @@ import {
   View,
 } from "react-native";
 import Toast from "react-native-toast-message";
-import AppConfig from "../config/app_config";
+import AppConfig from "../../config/app_config";
 
 const TOTAL_STEPS = 3;
 const CURRENT_STEP = 1;
@@ -66,7 +66,7 @@ export default function EmailVerificationScreen() {
 
       Toast.show({
         type: "success",
-        text1: "OTP Sent",
+        text1: "OTP sent successfully",
         text2: "Please check your email for the verification code.",
         visibilityTime:1500,
         autoHide:true,

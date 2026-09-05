@@ -33,7 +33,6 @@ export const getUserProfile = async() => {
   }
 };
 
-
 export const editUserProfile = async (username: string, phonenumber: string, address: string) => {
   
   try {
@@ -98,8 +97,3 @@ export const changeUserPassword = async(currentPassword: string, newPassword: st
   }
 };
 
-// html
-
-//ui code + ts code --> tsx()
-
-// ts code --> ts
