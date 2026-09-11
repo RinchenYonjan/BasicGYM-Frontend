@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Image, StatusBar, StyleSheet, Switch, Text, TouchableOpacity, View } from "react-native";
-import { getUserProfile } from "../../services/ProfileService";
+import { getUserProfile } from "../../services/profile.service";
 
 function SectionLabel({text}:{text: string;}) {
   return (

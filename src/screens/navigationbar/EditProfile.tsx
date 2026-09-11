@@ -1,9 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import {
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -17,10 +13,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import {
-  editUserProfile,
-  getUserProfile,
-} from "../../services/ProfileService";
+import { editUserProfile, getUserProfile } from "../../services/profile.service";
 
 export default function EditProfileScreen() {
   const [username, setUsername] = useState("");
@@ -30,11 +23,7 @@ export default function EditProfileScreen() {
   const queryClient = useQueryClient();
 
   // Get current profile
-  const {
-    data,
-    isPending,
-    error,
-  } = useQuery({
+  const {data, isPending, error} = useQuery({
     queryKey: ["profile"],
     queryFn: getUserProfile,
   });

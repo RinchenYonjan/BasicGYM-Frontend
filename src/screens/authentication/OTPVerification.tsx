@@ -1,18 +1,18 @@
 // src/app/otp-verification.tsx
-import { sendOtp, verifyOtp } from '@/api/auth.api';
 import StepProgressBar from '@/components/login/ProgressBar';
+import { sendOtp, verifyOtp } from '@/services/authentication.service';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
@@ -171,7 +171,7 @@ export default function OtpVerificationScreen() {
 
       <View style={styles.illustrationWrap}>
         <Image
-          source={require('../../../assets/otp-illustration.png')}
+          source={require('../../../assets/app-images/otp-illustration.png')}
           resizeMode="contain"
           style={styles.illustration}
         />

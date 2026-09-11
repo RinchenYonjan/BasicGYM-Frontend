@@ -1,31 +1,41 @@
-import { loginUser } from "@/api/auth.api";
-import Button from "@/components/common/Button";
+import { loginUser } from "@/services/authentication.service";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  BackHandler,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    ActivityIndicator,
+    BackHandler,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from "react-native";
 import Toast from "react-native-toast-message";
+
+const BRAND = "#E5383B";
+const BRAND_DARK = "#B22A2D";
+const INK = "#1A1A1E";
+const MUTED = "#8A8A93";
+const BORDER = "#E7E7EA";
+const BORDER_FOCUS = BRAND;
+const BG = "#FAFAFB";
 
 export default function LoginScreen() {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [focusedField, setFocusedField] = useState<"email" | "password" | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   // Track first back press
   const backPressedOnce = useRef(false);
 
   // Store timeout
-  const backPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(
-    null
-  );
+  const backPressTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Double back press to exit
   useEffect(() => {
@@ -36,7 +46,6 @@ export default function LoginScreen() {
         return true;
       }
 
-      // First back press
       backPressedOnce.current = true;
 
       Toast.show({
@@ -47,7 +56,6 @@ export default function LoginScreen() {
         autoHide: true,
       });
 
-      // Reset after 2 seconds
       backPressTimeout.current = setTimeout(() => {
         backPressedOnce.current = false;
       }, 2000);
@@ -55,14 +63,10 @@ export default function LoginScreen() {
       return true;
     };
 
-    const subscription = BackHandler.addEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+    const subscription = BackHandler.addEventListener("hardwareBackPress", backAction);
 
     return () => {
       subscription.remove();
-
       if (backPressTimeout.current) {
         clearTimeout(backPressTimeout.current);
       }
@@ -70,23 +74,21 @@ export default function LoginScreen() {
   }, []);
 
   const handleLogin = async () => {
+    if (!email || !password) {
+      Toast.show({
+        type: "error",
+        text1: "Empty fields",
+        text2: "Please enter both email and password.",
+        visibilityTime: 1500,
+        autoHide: true,
+      });
+      return;
+    }
+
+    setIsSubmitting(true);
+
     try {
-
-      if(!email || !password){
-        Toast.show({
-          type: "error",
-          text1: "Empty Fields",
-          text2: "Please enter both email and password.", 
-          visibilityTime:1500,
-          autoHide:true
-        })
-        return;
-      }
-
       const res = await loginUser(email, password);
-
-      console.log("this is response only", res.data);
-      console.log("this is res", res.data.token);
 
       if (res.data.token) {
         Toast.show({
@@ -104,152 +106,221 @@ export default function LoginScreen() {
         error?.response?.data?.message ||
         "Something went wrong. Please try again later.";
 
-      console.log("this is error Message", message);
-
       Toast.show({
         type: "error",
-        text1: "Server error (500)",
+        text1: "Login failed",
         text2: message,
         position: "top",
         visibilityTime: 1500,
         autoHide: true,
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.title}>Basic</Text>
-
-        <Text style={styles.subtitle}>
-          Gym App
-        </Text>
-      </View>
-
-      {/* CENTER FORM */}
-      <View style={styles.formContainer}>
-        {/* Email */}
-        <View style={styles.inputWrapper}>
-          <Ionicons
-            name="mail"
-            size={20}
-            color="#E53935"
-            style={styles.inputIcon}
-          />
-
-          <TextInput
-            style={styles.input}
-            placeholder="useremail@gmail.com"
-            placeholderTextColor="#9A9A9A"
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-          />
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}>
+    
+        {/* Header */}
+        <View style={styles.header}>
+          <View style={styles.logoBadge}>
+            <MaterialCommunityIcons name="dumbbell" size={30} color="#FFFFFF" />
+          </View>
+          <Text style={styles.title}>Basic</Text>
+          <Text style={styles.subtitle}>Train smarter, every day</Text>
         </View>
 
-        {/* Password */}
-        <View style={styles.inputWrapper}>
-          <MaterialCommunityIcons
-            name="lock"
-            size={20}
-            color="#000"
-            style={styles.inputIcon}
-          />
+        {/* Form Card */}
+        <View style={styles.card}>
+          <Text style={styles.cardHeading}>Welcome back</Text>
+          <Text style={styles.cardSubheading}>
+            Sign in to continue your progress
+          </Text>
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#9A9A9A"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry={!showPassword}
-          />
-
-          <TouchableOpacity
-            onPress={() =>
-              setShowPassword((prev) => !prev)
-            }
-            hitSlop={{
-              top: 10,
-              bottom: 10,
-              left: 10,
-              right: 10,
-            }}
+          {/* Email */}
+          <Text style={styles.label}>Email</Text>
+          <View
+            style={[
+              styles.inputWrapper,
+              focusedField === "email" && styles.inputWrapperFocused,
+            ]}
           >
             <Ionicons
-              name={showPassword ? "eye" : "eye-off"}
-              size={20}
-              color="#555"
+              name="mail-outline"
+              size={19}
+              color={focusedField === "email" ? BRAND : MUTED}
+              style={styles.inputIcon}
             />
+            <TextInput
+              style={styles.input}
+              placeholder="you@example.com"
+              placeholderTextColor="#B4B4BC"
+              value={email}
+              onChangeText={setEmail}
+              onFocus={() => setFocusedField("email")}
+              onBlur={() => setFocusedField(null)}
+              keyboardType="email-address"
+              autoCapitalize="none"
+              autoCorrect={false}
+              editable={!isSubmitting}
+            />
+          </View>
+
+          {/* Password */}
+          <Text style={styles.label}>Password</Text>
+          <View
+            style={[
+              styles.inputWrapper,
+              focusedField === "password" && styles.inputWrapperFocused,
+            ]}>
+
+            <MaterialCommunityIcons
+              name="lock-outline"
+              size={20}
+              color={focusedField === "password" ? BRAND : MUTED}
+              style={styles.inputIcon}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Enter your password"
+              placeholderTextColor="#B4B4BC"
+              value={password}
+              onChangeText={setPassword}
+              onFocus={() => setFocusedField("password")}
+              onBlur={() => setFocusedField(null)}
+              secureTextEntry={!showPassword}
+              editable={!isSubmitting}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword((prev) => !prev)}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              <Ionicons
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
+                size={20}
+                color={MUTED}
+              />
+            </TouchableOpacity>
+          </View>
+
+          {/* Forgot Password */}
+          <Pressable
+            style={styles.forgetBtn}
+            onPress={() => router.push("/email-verify")}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            <Text style={styles.forgetBtnText}>Forgot password?</Text>
+          </Pressable>
+
+          {/* Login Button */}
+          <TouchableOpacity
+            style={[styles.loginBtn, isSubmitting && styles.loginBtnDisabled]}
+            onPress={handleLogin}
+            disabled={isSubmitting}
+            activeOpacity={0.85}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.loginBtnText}>Log In</Text>
+            )}
           </TouchableOpacity>
         </View>
 
-        {/* Forgot Password */}
-        <Pressable
-          style={styles.forgetBtn}
-          onPress={() => {
-            router.push("/email-verify");
-          }}
-        >
-          <Text style={styles.forgetBtnText}>
-            Forget?
-          </Text>
-        </Pressable>
-
-        {/* Login Button */}
-        <Button onPress={handleLogin} />
-      </View>
-    </View>
+        {/* Sign up link */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>Don&apos;t have an account? </Text>
+          <Pressable onPress={() => router.push("/")} hitSlop={8}>
+            <Text style={styles.footerLink}>Sign up</Text>
+          </Pressable>
+        </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    width: "100%",
-  },
 
   header: {
-    position: "absolute",
-    top: 150,
-    left: 0,
-    right: 0,
     alignItems: "center",
-    zIndex: 10,
+    marginBottom: 32,
+  },
+
+  logoBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: BRAND,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 14,
+    shadowColor: BRAND,
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 6,
   },
 
   title: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "800",
-    color: "#E53935",
-    letterSpacing: 1,
+    color: INK,
+    letterSpacing: 0.3,
   },
 
   subtitle: {
     fontSize: 14,
-    color: "#E53935",
+    color: MUTED,
     marginTop: 4,
-    fontStyle: "italic",
   },
 
-  formContainer: {
-    flex: 1,
-    justifyContent: "center",
-    width: "100%",
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3,
+  },
+
+  cardHeading: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: INK,
+  },
+
+  cardSubheading: {
+    fontSize: 13,
+    color: MUTED,
+    marginTop: 4,
+    marginBottom: 22,
+  },
+
+  label: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: INK,
+    marginBottom: 6,
   },
 
   inputWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    borderWidth: 1,
-    borderColor: "#E0E0E0",
-    borderRadius: 8,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    borderRadius: 12,
     paddingHorizontal: 14,
     height: 52,
-    marginBottom: 16,
+    marginBottom: 18,
+    backgroundColor: "#FCFCFD",
+  },
+
+  inputWrapperFocused: {
+    borderColor: BORDER_FOCUS,
+    backgroundColor: "#FFFFFF",
   },
 
   inputIcon: {
@@ -259,14 +330,60 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     fontSize: 15,
-    color: "#000",
+    color: INK,
   },
 
   forgetBtn: {
-    marginBottom: 12,
+    alignSelf: "flex-end",
+    marginBottom: 20,
+    marginTop: -6,
   },
 
   forgetBtnText: {
-    textAlign: "right",
+    fontSize: 13,
+    fontWeight: "600",
+    color: BRAND,
+  },
+
+  loginBtn: {
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: BRAND,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: BRAND,
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 4,
+  },
+
+  loginBtnDisabled: {
+    backgroundColor: BRAND_DARK,
+    opacity: 0.8,
+  },
+
+  loginBtnText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "700",
+    letterSpacing: 0.3,
+  },
+
+  footer: {
+    flexDirection: "row",
+    justifyContent: "center",
+    marginTop: 24,
+  },
+
+  footerText: {
+    fontSize: 13,
+    color: MUTED,
+  },
+
+  footerLink: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: BRAND,
   },
 });

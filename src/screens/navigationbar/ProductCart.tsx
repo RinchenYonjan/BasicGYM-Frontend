@@ -1,45 +1,80 @@
+import { getToken } from "@/helper/tokenStorage";
 import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    FlatList,
-    Image,
-    SafeAreaView,
-    StyleSheet,
-    Text,
-    TouchableOpacity,
-    View,
+  FlatList,
+  Image,
+  SafeAreaView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+
 
 const initialCart = [
   {
     id: "1",
-    name: "Creatine Monohydrate",
+    name: "MB Creatine Monohydrate",
     category: "Creatine",
     price: 2500,
     quantity: 1,
-    image: require("../assets/images/creatine.jpg"),
+    image: require("../../../assets/app-images/creatine.png"),
   },
   {
     id: "2",
-    name: "Whey Protein",
+    name: "MB Whey Protein",
     category: "Protein",
     price: 6500,
     quantity: 2,
-    image: require("../assets/images/whey.jpg"),
+    image: require("../../../assets/app-images/mb protein.png"),
   },
   {
     id: "3",
-    name: "Pre-Workout",
+    name: "C4 Pre-Workout",
     category: "Pre-Workout",
     price: 3500,
     quantity: 1,
-    image: require("../assets/images/preworkout.jpg"),
+    image: require("../../../assets/app-images/c4 pre-workout.png"),
   },
 ];
 
-export default function CartScreen() {
+export default function ProductCartScreen() {
   const [cartItems, setCartItems] = useState(initialCart);
+
+  async function handlePayment() {
+    const token =getToken();
+    if(!token){
+      router.push("/login")
+    }
+    // const productId = 
+    // const quanitty
+    try{
+
+      const res=await axios.post("http://localhost:3000/api/payment/esewa/initiate",{
+        // productId,
+        // quantity
+      },{
+        headers:{
+          Authorization:`bearer ${token}`
+        }
+      })
+      // console.log("this is respone",res.data);
+      // const link = res.data.data.deeplink;
+      // await Linking.openURL(link);
+
+    }
+    catch(err){
+
+    }
+
+
+
+
+    
+  }
 
   const updateQuantity = (id: string, type: "increase" | "decrease") => {
     setCartItems((items) =>
@@ -129,18 +164,15 @@ export default function CartScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.back()}
+          onPress={()=>{
+            router.replace('/product');
+          }}
         >
           <Ionicons name="arrow-back" size={24} color="#222" />
         </TouchableOpacity>
 
         <Text style={styles.headerTitle}>My Cart</Text>
 
-        <View style={styles.headerRight}>
-          <Text style={styles.itemCount}>
-            {cartItems.length}
-          </Text>
-        </View>
       </View>
 
       {cartItems.length === 0 ? (
@@ -206,7 +238,7 @@ export default function CartScreen() {
 
             <TouchableOpacity
               style={styles.checkoutButton}
-              onPress={() => router.push("/")}
+              onPress={handlePayment}
             >
               <Text style={styles.checkoutText}>Proceed to Checkout</Text>
 
@@ -235,11 +267,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    justifyContent: "center",
     backgroundColor: "#fff",
   },
 
   backButton: {
+    position: 'absolute',
+    left: 14,
     width: 40,
     height: 40,
     borderRadius: 20,
@@ -251,13 +285,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#222",
-  },
-
-  headerRight: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#222",
     alignItems: "center",
     justifyContent: "center",
   },

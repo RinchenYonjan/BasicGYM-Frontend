@@ -3,7 +3,7 @@ import { router } from "expo-router";
 import { useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
-import { changeUserPassword } from "../../services/ProfileService";
+import { changeUserPassword } from "../../services/profile.service";
 
 
 type PasswordInputProps = {

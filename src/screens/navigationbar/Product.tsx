@@ -1,143 +1,131 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    FlatList,
-    Image,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
+import { getAllProducts } from "../../services/product.service";
 
-const products = [
-  {
-    id: "1",
-    name: "Creatine Monohydrate",
-    category: "Creatine",
-    price: "24.99",
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500",
-  },
-  {
-    id: "2",
-    name: "Pre-Workout Blast",
-    category: "Pre-Workout",
-    price: "19.99",
-    image:
-      "https://images.unsplash.com/photo-1594737625785-c9d6c9d2b3a8?w=500",
-  },
-  {
-    id: "3",
-    name: "Whey Protein",
-    category: "Protein",
-    price: "39.99",
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500",
-  },
-  {
-    id: "4",
-    name: "Mass Gainer",
-    category: "Mass Gainer",
-    price: "44.99",
-    image:
-      "https://images.unsplash.com/photo-1622484211148-58a0c3c3a6b6?w=500",
-  },
-  {
-    id: "5",
-    name: "BCAA Recovery",
-    category: "BCAA",
-    price: "18.50",
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500",
-  },
-  {
-    id: "6",
-    name: "Isolate Protein",
-    category: "Protein",
-    price: "49.99",
-    image:
-      "https://images.unsplash.com/photo-1622484211148-58a0c3c3a6b6?w=500",
-  },
-  {
-    id: "7",
-    name: "Creatine Monohydrate",
-    category: "Creatine",
-    price: "24.99",
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500",
-  },
-  {
-    id: "8",
-    name: "Pre-Workout Blast",
-    category: "Pre-Workout",
-    price: "19.99",
-    image:
-      "https://images.unsplash.com/photo-1594737625785-c9d6c9d2b3a8?w=500",
-  },
-  {
-    id: "9",
-    name: "Whey Protein",
-    category: "Protein",
-    price: "39.99",
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500",
-  },
-  {
-    id: "10",
-    name: "Mass Gainer",
-    category: "Mass Gainer",
-    price: "44.99",
-    image:
-      "https://images.unsplash.com/photo-1622484211148-58a0c3c3a6b6?w=500",
-  },
-  {
-    id: "11",
-    name: "BCAA Recovery",
-    category: "BCAA",
-    price: "18.50",
-    image:
-      "https://images.unsplash.com/photo-1593095948071-474c5cc2989d?w=500",
-  },
-  {
-    id: "12",
-    name: "Isolate Protein",
-    category: "Protein",
-    price: "49.99",
-    image:
-      "https://images.unsplash.com/photo-1622484211148-58a0c3c3a6b6?w=500",
-  },
+
+type Product = {
+  id: string;
+  product_name: string;
+  product_category: string;
+  product_price: string;
+  product_image: string;
+};
+
+const categories = [
+  "All",
+  "Creatine",
+  "Protein",
+  "Pre-Workout",
+  "Mass Gainer",
+  "BCAA",
 ];
 
 const ProductScreen = () => {
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [showCategoryMenu, setShowCategoryMenu] = useState(false);
 
-  const filteredProducts = products.filter((product) =>
-    product.name.toLowerCase().includes(search.toLowerCase())
-  );
+  const {data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage} = useInfiniteQuery({
+  
+    queryKey: ["products"],
 
-  const toggleFavorite = (id: string) => {
-    setFavorites((prev) =>
-      prev.includes(id)
-        ? prev.filter((item) => item !== id)
-        : [...prev, id]
+    initialPageParam: null,
+
+    queryFn: async ({ pageParam }) => {
+      console.log("Fetching products with cursor:", pageParam);
+
+      const response = await getAllProducts(pageParam);
+
+      console.log("Product page response:", response);
+
+      return response;
+    },
+
+
+    getNextPageParam: (lastPage) => {
+   
+      if(!lastPage.data.hasNextPage){
+        return undefined;
+      }
+
+      return lastPage.data.nextCursor ?? undefined;
+    },
+
+  });
+
+  if(isLoading){
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Loading products...</Text>
+      </View>
     );
+  }
+
+  if(isError){
+    return (
+      <View style={styles.loadingContainer}>
+        <Text>Failed to load products.</Text>
+      </View>
+    );
+  }
+  
+  const products: Product[] = data?.pages?.flatMap(
+    (page) => page?.data?.products ?? []
+  ) ?? [];
+
+  // Toggle favorite product
+  const toggleFavorite = (productId: string) => {
+    setFavorites((previousFavorites) => {
+      if (previousFavorites.includes(productId)) {
+        return previousFavorites.filter((id) => id !== productId);
+      }
+
+      return [...previousFavorites, productId];
+    });
   };
 
-  const renderProduct = ({ item }: any) => {
+  // Search + category filter
+  const filteredProducts = products.filter((product) => {
+    const searchText = search.trim().toLowerCase();
+
+    const matchesSearch = product.product_name
+      .toLowerCase()
+      .startsWith(searchText);
+
+    const matchesCategory =
+      selectedCategory === "All" || product.product_category === selectedCategory;
+      
+      return matchesSearch && matchesCategory;
+  });
+
+  const renderProduct = ({ item }: { item: Product }) => {
     const isFavorite = favorites.includes(item.id);
 
     return (
       <Pressable
         style={styles.productCard}
-        onPress={() => console.log("Selected:", item.name)}
+        onPress={() => console.log("Selected:", item.product_name)}
       >
-        {/* Favorite */}
+        {/* Favorite Button */}
         <Pressable
           style={styles.favoriteButton}
-          onPress={() => toggleFavorite(item.id)}
+          onPress={(event) => {
+            event.stopPropagation();
+            toggleFavorite(item.id);
+          }}
+          hitSlop={8}
         >
           <Ionicons
             name={isFavorite ? "heart" : "heart-outline"}
@@ -149,23 +137,31 @@ const ProductScreen = () => {
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <Image
-            source={{ uri: item.image }}
+            source={{uri:item.product_image}}
             style={styles.productImage}
             resizeMode="contain"
           />
         </View>
 
         {/* Product Name */}
-        <Text style={styles.productName} numberOfLines={1}>
-          {item.name}
+        <Text
+          style={styles.productName}
+          numberOfLines={1}
+        >
+          {item.product_name}
         </Text>
 
         {/* Category */}
-        <Text style={styles.category}>{item.category}</Text>
+        <Text
+          style={styles.category}
+          numberOfLines={1}
+        >
+          {item.product_category}
+        </Text>
 
         {/* Price */}
         <Text style={styles.price}>
-          $ {item.price}
+          RS {item.product_price}
         </Text>
       </Pressable>
     );
@@ -175,12 +171,13 @@ const ProductScreen = () => {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-    
-        <Text style={styles.headerTitle}>Gym Supplements</Text>
+        <Text style={styles.headerTitle}>
+          Gym Supplements
+        </Text>
 
         <Pressable
           style={styles.headerButton}
-          onPress={() => router.push("/../screens/navigationbar/ProductCart")}
+          onPress={() => router.push("/(tabs)/product-cart")}
         >
           <Ionicons
             name="cart-outline"
@@ -189,7 +186,9 @@ const ProductScreen = () => {
           />
 
           <View style={styles.cartBadge}>
-            <Text style={styles.cartBadgeText}>2</Text>
+            <Text style={styles.cartBadgeText}>
+              2
+            </Text>
           </View>
         </Pressable>
       </View>
@@ -202,6 +201,8 @@ const ProductScreen = () => {
           placeholder="Search supplements..."
           placeholderTextColor="#b8b8b8"
           style={styles.searchInput}
+          autoCapitalize="none"
+          autoCorrect={false}
         />
 
         <Ionicons
@@ -214,17 +215,82 @@ const ProductScreen = () => {
       {/* Results Header */}
       <View style={styles.resultHeader}>
         <Text style={styles.resultText}>
-          {filteredProducts.length} Product results
+          {filteredProducts.length} Product
+          {filteredProducts.length !== 1 ? "s" : ""} results
         </Text>
 
-        <Pressable style={styles.sortButton}>
-          <Text style={styles.sortText}>Sort by</Text>
-          <Ionicons
-            name="chevron-down"
-            size={12}
-            color="#777"
-          />
-        </Pressable>
+        {/* Category Filter */}
+        <View style={styles.filterContainer}>
+          <Pressable
+            style={styles.sortButton}
+            onPress={() =>
+              setShowCategoryMenu((previous) => !previous)
+            }
+          >
+            <Text
+              style={[
+                styles.sortText,
+                selectedCategory !== "All" &&
+                  styles.activeSortText,
+              ]}
+            >
+              {selectedCategory}
+            </Text>
+
+            <Ionicons
+              name={
+                showCategoryMenu
+                  ? "chevron-up"
+                  : "chevron-down"
+              }
+              size={12}
+              color="#777"
+            />
+          </Pressable>
+
+          {/* Category Dropdown */}
+          {showCategoryMenu && (
+            <View style={styles.categoryMenu}>
+              {categories.map((category) => {
+                const isSelected =
+                  selectedCategory === category;
+
+                return (
+                  <Pressable
+                    key={category}
+                    style={[
+                      styles.categoryOption,
+                      isSelected &&
+                        styles.selectedCategoryOption,
+                    ]}
+                    onPress={() => {
+                      setSelectedCategory(category);
+                      setShowCategoryMenu(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        isSelected &&
+                          styles.selectedCategoryOptionText,
+                      ]}
+                    >
+                      {category}
+                    </Text>
+
+                    {isSelected && (
+                      <Ionicons
+                        name="checkmark"
+                        size={15}
+                        color="#d95778"
+                      />
+                    )}
+                  </Pressable>
+                );
+              })}
+            </View>
+          )}
+        </View>
       </View>
 
       {/* Product Grid */}
@@ -236,7 +302,24 @@ const ProductScreen = () => {
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.productList}
         showsVerticalScrollIndicator={false}
-        />
+
+        onEndReached={() => {
+          if (hasNextPage && !isFetchingNextPage) {
+            fetchNextPage();
+          }
+        }}
+
+        onEndReachedThreshold={0.5}
+
+        ListFooterComponent={
+          isFetchingNextPage ? (
+            <View style={styles.loadingMore}>
+              <Text>Loading more products...</Text>
+            </View>
+          ) : null
+        }
+      />
+
     </View>
   );
 };
@@ -251,17 +334,16 @@ const styles = StyleSheet.create({
     paddingTop: 20,
   },
 
-  // Header
+  /* Header */
   header: {
     height: 48,
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     marginBottom: 15,
   },
 
   headerTitle: {
-    textAlign: "center",
-    flex: 1,
     fontSize: 16,
     fontWeight: "700",
     color: "#292929",
@@ -297,7 +379,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  // Search
+  /* Search */
   searchContainer: {
     height: 40,
     backgroundColor: "#f7f7f7",
@@ -315,18 +397,29 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
 
-  // Results
+  /* Results */
   resultHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     marginBottom: 10,
+
+    // Important for dropdown
+    zIndex: 20,
+    elevation: 20,
   },
 
   resultText: {
     fontSize: 11,
     color: "#333",
     fontWeight: "600",
+  },
+
+  /* Filter */
+  filterContainer: {
+    position: "relative",
+    zIndex: 30,
+    elevation: 30,
   },
 
   sortButton: {
@@ -346,9 +439,67 @@ const styles = StyleSheet.create({
     color: "#777",
   },
 
-  // Grid
+  activeSortText: {
+    color: "#d95778",
+    fontWeight: "700",
+  },
+
+  /* Category Dropdown */
+  categoryMenu: {
+    position: "absolute",
+    top: 32,
+    right: 0,
+    width: 145,
+
+    backgroundColor: "#ffffff",
+    borderRadius: 8,
+
+    paddingVertical: 5,
+
+    borderWidth: 1,
+    borderColor: "#eeeeee",
+
+    zIndex: 100,
+    elevation: 10,
+
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 5,
+  },
+
+  categoryOption: {
+    height: 36,
+    paddingHorizontal: 10,
+
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  selectedCategoryOption: {
+    backgroundColor: "#fff7fa",
+  },
+
+  categoryOptionText: {
+    fontSize: 10,
+    color: "#555",
+  },
+
+  selectedCategoryOptionText: {
+    color: "#d95778",
+    fontWeight: "700",
+  },
+
+  /* Product Grid */
   productList: {
     paddingBottom: 25,
+
+    // Keep list below dropdown
+    zIndex: 1,
   },
 
   columnWrapper: {
@@ -356,7 +507,14 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-  // Product Card
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#ffffff",
+  },
+
+  /* Product Card */
   productCard: {
     width: "48%",
     height: 177,
@@ -371,14 +529,17 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: 8,
     top: 8,
+
     zIndex: 10,
   },
 
   imageContainer: {
     width: "100%",
     height: 95,
+
     alignItems: "center",
     justifyContent: "center",
+
     marginTop: 3,
   },
 
@@ -408,4 +569,10 @@ const styles = StyleSheet.create({
     color: "#222",
     marginTop: 6,
   },
+
+  loadingMore: {
+  paddingVertical: 20,
+  alignItems: "center",
+  },
+
 });

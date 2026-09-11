@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { getToken } from '@/helper/tokenStorage';
-import { getUserProfile } from '@/services/ProfileService';
+import { getUserProfile } from '@/services/profile.service';
 
 export default function SummaryCard() {
   const [planName, setPlanName] = useState('');

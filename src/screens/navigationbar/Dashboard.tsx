@@ -5,7 +5,7 @@ import SummaryCard from "@/components/dashboard/SummaryCard";
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, View } from "react-native";
-import { getUserProfile } from '../../services/ProfileService';
+import { getUserProfile } from '../../services/profile.service';
 
 export default function DashboardScreen() {
 

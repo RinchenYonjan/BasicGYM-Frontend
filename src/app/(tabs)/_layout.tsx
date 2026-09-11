@@ -52,7 +52,7 @@ export default function TabLayout() {
           headerShown: false,
           tabBarActiveTintColor: "#5B2A6F",
           tabBarInactiveTintColor: "#8A8A8E",
-        }}>
+      }}>
 
         <Tabs.Screen
           name="dashboard"
@@ -109,6 +109,21 @@ export default function TabLayout() {
             href: null,
           }}
         />
+
+        <Tabs.Screen
+          name="product-cart"
+          options={{
+            href: null,
+          }}
+        />
+
+        <Tabs.Screen
+          name="product-detail"
+          options={{
+            href: null,
+          }}
+        />
+
       </Tabs>
     </SafeAreaView>
   );
