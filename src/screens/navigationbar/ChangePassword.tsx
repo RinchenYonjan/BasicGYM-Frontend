@@ -15,14 +15,7 @@ type PasswordInputProps = {
   onToggle: () => void;
 };
 
-function PasswordInput({
-  placeholder,
-  value,
-  onChangeText,
-  secureTextEntry,
-  showPassword,
-  onToggle,
-}: PasswordInputProps) {
+function PasswordInput({placeholder, value, onChangeText, secureTextEntry, showPassword, onToggle}: PasswordInputProps){
   return (
     <View style={styles.inputWrapper}>
       <TextInput
@@ -63,7 +56,7 @@ export default function ChangePasswordScreen() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-
+  
   const [saving, setSaving] = useState(false);
 
   const handleConfirm = async () => {
@@ -265,8 +258,7 @@ export default function ChangePasswordScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
+    flex: 1
   },
 
   scrollContent: {
@@ -333,7 +325,7 @@ const styles = StyleSheet.create({
   input: {
     height: 57,
     borderWidth: 1,
-    borderColor: "#111111",
+    borderColor: "#fff",
     borderRadius: 4,
     paddingLeft: 15,
     paddingRight: 50,

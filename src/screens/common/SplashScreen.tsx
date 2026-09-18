@@ -99,18 +99,6 @@ export default function SplashScreen({ onFinish }: SplashScreenProps) {
             },
           ]}
         />
-
-        <Animated.Text
-          style={[
-            styles.title,
-            {
-              opacity: textOpacity,
-              transform: [{ translateY: textTranslateY }],
-            },
-          ]}
-        >
-          Basic Gym
-        </Animated.Text>
       </View>
     </LinearGradient>
   );
@@ -120,15 +108,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   icon: {
-    width: 90,
-    height: 90,
-    // tintColor: '#FFFFFF',
-  },
-  title: {
-    marginTop: 24,
-    color: '#FFFFFF',
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: 2,
+    width: 160,
+    height: 160,
   },
 });

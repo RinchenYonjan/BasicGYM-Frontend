@@ -2,15 +2,23 @@
 import axios from "axios";
 import AppConfig from "../config/app_config";
 
-export const initiateEsewaPayment = async (
-  productId: string,
-  quantity: number
-) => {
+type PaymentItem = {
+  productId: string;
+  quantity: number;
+};
+
+export const initiateEsewaPayment = async(items: PaymentItem[], token: string) => {
+
   const response = await axios.post(
     `${AppConfig.baseURL}/api/payment/esewa/initiate`,
     {
-      productId,
-      quantity,
+      items,
+    },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     }
   );
 

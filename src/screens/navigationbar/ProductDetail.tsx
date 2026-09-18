@@ -1,6 +1,6 @@
+import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useQuery } from "@tanstack/react-query";
-import * as Linking from "expo-linking";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,120 +13,126 @@ import {
   Text,
   View,
 } from "react-native";
-import { initiateEsewaPayment } from "../../services/payment.service";
 import { getProductById } from "../../services/product.service";
 
 
-const ProductDetailScreen = () => {
+export default function ProductDetailScreen() {
 
   const { id } = useLocalSearchParams<{ id: string }>();
   const [quantity, setQuantity] = useState(1);
+  const [isFavorite, setIsFavorite] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
+  const { addToCart } = useCart();
+
   const {data: product, isLoading, isError} = useQuery({
     queryKey: ["product", id],
     queryFn: () => getProductById(id),
     enabled: !!id,
   });
 
+  
+  // Quantity
   const increaseQuantity = () => {
-    setQuantity((prev) => prev + 1);
+    setQuantity((previous) => previous + 1);
   };
 
   const decreaseQuantity = () => {
-    setQuantity((prev) => Math.max(1, prev - 1));
+    setQuantity((previous) => Math.max(1, previous - 1));
   };
 
+  // Add to cart
   const handleAddToCart = () => {
-    console.log("Add to cart:", {
-      productId: product?.id,
-      quantity,
-    });
+    
+    if (!product) return;
+    addToCart(
+    {
+      id: String(product.id),
+      name: product.product_name,
+      category: product.product_category,
+      price: Number(product.product_price),
+      image: {uri: product.product_image},
+    },
+      quantity
+    );
+    
+    Alert.alert(
+      "Added to Cart",
+      `${product.product_name} has been added to your cart.`
+    );
 
-    // Later you can call your add-to-cart API here
   };
 
+  // Loading
   if (isLoading) {
     return (
       <View style={styles.center}>
-        <ActivityIndicator size="large" />
+        <ActivityIndicator size="large" color="#d95778" />
+
+        <Text style={styles.loadingText}>
+          Loading product...
+        </Text>
       </View>
     );
   }
 
+  // Error
   if (isError || !product) {
     return (
       <View style={styles.center}>
-        <Ionicons name="alert-circle-outline" size={45} color="#999" />
+        <View style={styles.errorIcon}>
+          <Ionicons
+            name="alert-circle-outline"
+            size={45}
+            color="#d95778"
+          />
+        </View>
 
         <Text style={styles.errorTitle}>
           Unable to load product
         </Text>
 
         <Text style={styles.errorText}>
-          Something went wrong. Please try again.
+          Something went wrong while loading this product.
         </Text>
 
         <Pressable
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>Go Back</Text>
+          <Ionicons
+            name="arrow-back"
+            size={17}
+            color="#fff"
+          />
+
+          <Text style={styles.backButtonText}>
+            Go Back
+          </Text>
         </Pressable>
       </View>
     );
   }
 
-
-const handleEsewaPayment = async () => {
-  if (!product) return;
-
-  try {
-    setIsPaying(true);
-
-    const response = await initiateEsewaPayment(
-      product.id,
-      quantity
-    );
-
-    const deeplink = response?.data?.deeplink;
-
-    if (!deeplink) {
-      throw new Error("Unable to create eSewa payment");
-    }
-
-    await Linking.openURL(deeplink);
-
-  }catch(error){
-
-    console.error("eSewa payment error:", error);
-
-    Alert.alert(
-      "Payment Failed",
-      "Unable to initiate eSewa payment. Please try again."
-    );
-
-  } finally {
-    
-    setIsPaying(false);
-  
-  }
-};
+  const price = Number(product.product_price);
+  const totalPrice = price * quantity;
 
   return (
     <View style={styles.container}>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
+        contentContainerStyle={styles.scrollContent}>
+
         {/* Header */}
         <View style={styles.header}>
+
           <Pressable
             style={styles.iconButton}
             onPress={() => router.back()}
           >
             <Ionicons
               name="arrow-back"
-              size={22}
+              size={21}
               color="#111"
             />
           </Pressable>
@@ -135,87 +141,187 @@ const handleEsewaPayment = async () => {
             Product Details
           </Text>
 
-          <Pressable style={styles.iconButton}>
+          <Pressable
+            style={styles.iconButton}
+            onPress={() =>
+              setIsFavorite((previous) => !previous)
+            }
+          >
             <Ionicons
-              name="heart-outline"
-              size={23}
-              color="#111"
+              name={isFavorite ? "heart" : "heart-outline"}
+              size={22}
+              color={isFavorite ? "#d95778" : "#111"}
             />
           </Pressable>
+
         </View>
 
         {/* Product Image */}
         <View style={styles.imageContainer}>
+
+          <View style={styles.imageBadge}>
+            <Text style={styles.imageBadgeText}>
+              {product.product_category}
+            </Text>
+          </View>
+
           <Image
-            source={{ uri: product.image }}
+            source={{
+              uri: product.product_image,
+            }}
             style={styles.image}
             resizeMode="contain"
           />
+
         </View>
 
-        {/* Product Information */}
+        {/* Product Content */}
         <View style={styles.content}>
+
           {/* Category */}
           <Text style={styles.category}>
-            {product.category}
+            {product.product_category}
           </Text>
 
-          {/* Product Name */}
+          {/* Name */}
           <Text style={styles.name}>
-            {product.name}
+            {product.product_name}
           </Text>
 
           {/* Rating */}
           <View style={styles.ratingContainer}>
-            <View style={styles.rating}>
+
+            <View style={styles.ratingBox}>
+
               <Ionicons
                 name="star"
-                size={16}
+                size={15}
                 color="#F5A623"
               />
 
               <Text style={styles.ratingText}>
                 4.8
               </Text>
+
             </View>
 
             <Text style={styles.reviewText}>
               120 Reviews
             </Text>
+
           </View>
 
           {/* Price */}
           <Text style={styles.price}>
-            ${Number(product.price).toFixed(2)}
+            Rs {price.toFixed(2)}
           </Text>
 
           <View style={styles.divider} />
 
           {/* Description */}
           <Text style={styles.sectionTitle}>
-            Description
+            About this product
           </Text>
 
           <Text style={styles.description}>
-            High-quality {product.name} designed to support
-            your fitness goals. Perfect for your daily
-            training and workout routine.
+            High-quality {product.product_name} designed
+            to support your fitness goals. Perfect for
+            your daily training and workout routine.
           </Text>
+
+          {/* Benefits */}
+          <View style={styles.benefitsCard}>
+
+            <View style={styles.benefitRow}>
+
+              <View style={styles.benefitIcon}>
+                <Ionicons
+                  name="shield-checkmark-outline"
+                  size={19}
+                  color="#d95778"
+                />
+              </View>
+
+              <View style={styles.benefitContent}>
+                <Text style={styles.benefitTitle}>
+                  Quality Product
+                </Text>
+
+                <Text style={styles.benefitText}>
+                  Carefully selected products
+                </Text>
+              </View>
+
+            </View>
+
+            <View style={styles.benefitRow}>
+
+              <View style={styles.benefitIcon}>
+                <Ionicons
+                  name="car-outline"
+                  size={19}
+                  color="#d95778"
+                />
+              </View>
+
+              <View style={styles.benefitContent}>
+                <Text style={styles.benefitTitle}>
+                  Fast Delivery
+                </Text>
+
+                <Text style={styles.benefitText}>
+                  Delivered to your doorstep
+                </Text>
+              </View>
+
+            </View>
+
+            <View style={styles.benefitRow}>
+
+              <View style={styles.benefitIcon}>
+                <Ionicons
+                  name="refresh-outline"
+                  size={19}
+                  color="#d95778"
+                />
+              </View>
+
+              <View style={styles.benefitContent}>
+                <Text style={styles.benefitTitle}>
+                  Easy Returns
+                </Text>
+
+                <Text style={styles.benefitText}>
+                  Hassle-free return policy
+                </Text>
+              </View>
+
+            </View>
+
+          </View>
 
           {/* Quantity */}
           <View style={styles.quantityRow}>
-            <Text style={styles.sectionTitle}>
-              Quantity
-            </Text>
+
+            <View>
+              <Text style={styles.sectionTitle}>
+                Quantity
+              </Text>
+
+              <Text style={styles.quantitySubText}>
+                Select the number of items
+              </Text>
+            </View>
 
             <View style={styles.quantityContainer}>
+
               <Pressable
                 style={styles.quantityButton}
                 onPress={decreaseQuantity}
               >
                 <Ionicons
                   name="remove"
-                  size={18}
+                  size={17}
                   color="#111"
                 />
               </Pressable>
@@ -230,103 +336,86 @@ const handleEsewaPayment = async () => {
               >
                 <Ionicons
                   name="add"
-                  size={18}
+                  size={17}
                   color="#111"
                 />
               </Pressable>
+
             </View>
+
           </View>
 
-          {/* Product Details */}
-          <View style={styles.infoCard}>
-            <View style={styles.infoRow}>
-              <Ionicons
-                name="shield-checkmark-outline"
-                size={21}
-                color="#333"
-              />
-
-              <View>
-                <Text style={styles.infoTitle}>
-                  Quality Product
-                </Text>
-
-                <Text style={styles.infoText}>
-                  Carefully selected products
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Ionicons
-                name="car-outline"
-                size={21}
-                color="#333"
-              />
-
-              <View>
-                <Text style={styles.infoTitle}>
-                  Fast Delivery
-                </Text>
-
-                <Text style={styles.infoText}>
-                  Delivered to your doorstep
-                </Text>
-              </View>
-            </View>
-          </View>
         </View>
+
       </ScrollView>
 
-      {/* Bottom Add To Cart */}
+      {/* Bottom Purchase Bar */}
       <View style={styles.bottomBar}>
-        <View>
-          <Text style={styles.totalLabel}>
-            Total Price
-          </Text>
 
-          <Text style={styles.totalPrice}>
-            ${(Number(product.price) * quantity).toFixed(2)}
-          </Text>
+        <View style={styles.actionButtons}>
+
+          {/* Cart */}
+          <Pressable
+            style={styles.cartButton}
+            onPress={handleAddToCart}
+          >
+            <Ionicons
+              name="cart-outline"
+              size={21}
+              color="#d95778"
+            />
+
+            <Text style={styles.cartButtonText}>
+              Add to Cart
+            </Text>
+          </Pressable>
+
+          {/* Buy Now */}
+          <Pressable
+            style={[
+              styles.payButton,
+              isPaying && styles.disabledButton,
+            ]}
+            onPress={() => 
+              router.push({
+                pathname: "/product/bill",
+                params: {
+                  productId: String(product.id),
+                  quantity: quantity.toString(),
+                  mode: "buy-now",
+                },
+              })
+            }
+            disabled={isPaying}>
+          
+            <Ionicons
+              name="wallet-outline"
+              size={20}
+              color="#fff"
+            />
+
+            <Text style={styles.payButtonText}>
+              Buy Now
+            </Text>
+      
+          </Pressable>
+
         </View>
 
-      <Pressable style={[
-        styles.addToCartButton,
-        isPaying && styles.disabledButton]}
-        onPress={handleEsewaPayment}
-        disabled={isPaying}>
-
-        {isPaying ? (
-          <ActivityIndicator color="#fff" />
-          ) : ( 
-        <>
-          <Ionicons
-            name="wallet-outline"
-            size={21}
-            color="#fff"/>
-
-          <Text style={styles.addToCartText}>
-            Pay with eSewa
-          </Text>
-        </>
-        )}
-      </Pressable>
-      
       </View>
+
     </View>
   );
 };
 
-export default ProductDetailScreen;
-
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    backgroundColor: "#fff",
   },
 
   scrollContent: {
-    paddingBottom: 120,
+    paddingBottom: 100,
   },
 
   center: {
@@ -337,8 +426,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
 
-  /* Header */
+  loadingText: {
+    marginTop: 10,
+    fontSize: 13,
+    color: "#888",
+  },
 
+  /* Header */
   header: {
     height: 65,
     paddingHorizontal: 20,
@@ -354,91 +448,115 @@ const styles = StyleSheet.create({
   },
 
   iconButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    backgroundColor: "#F6F6F6",
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#F7F7F7",
     justifyContent: "center",
     alignItems: "center",
   },
 
   /* Image */
-
   imageContainer: {
+    height: 310,
     marginHorizontal: 20,
-    height: 320,
     borderRadius: 24,
-    backgroundColor: "#F7F7F7",
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
+    position: "relative",
     overflow: "hidden",
   },
 
   image: {
-    width: "90%",
-    height: "90%",
+    width: "85%",
+    height: "85%",
+  },
+
+  imageBadge: {
+    position: "absolute",
+    top: 15,
+    left: 15,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: "#fff",
+    zIndex: 2,
+  },
+
+  imageBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#d95778",
+    textTransform: "uppercase",
   },
 
   /* Content */
-
   content: {
     paddingHorizontal: 20,
-    paddingTop: 25,
+    paddingTop: 23,
   },
 
   category: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#888",
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#d95778",
     textTransform: "uppercase",
-    letterSpacing: 0.8,
+    letterSpacing: 1,
   },
 
   name: {
     marginTop: 7,
-    fontSize: 27,
-    lineHeight: 34,
+    fontSize: 26,
+    lineHeight: 33,
     fontWeight: "800",
     color: "#111",
   },
 
+  /* Rating */
   ratingContainer: {
     flexDirection: "row",
     alignItems: "center",
     marginTop: 12,
   },
 
-  rating: {
+  ratingBox: {
     flexDirection: "row",
     alignItems: "center",
     gap: 5,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+    borderRadius: 7,
+    backgroundColor: "#FFF7E8",
   },
 
   ratingText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
-    color: "#222",
+    color: "#333",
   },
 
   reviewText: {
-    marginLeft: 10,
-    fontSize: 13,
-    color: "#888",
+    marginLeft: 9,
+    fontSize: 12,
+    color: "#999",
   },
 
+  /* Price */
   price: {
-    marginTop: 18,
+    marginTop: 17,
     fontSize: 25,
     fontWeight: "800",
-    color: "#111",
+    color: "#d95778",
   },
 
   divider: {
     height: 1,
-    backgroundColor: "#EAEAEA",
-    marginVertical: 22,
+    backgroundColor: "#EEEEEE",
+    marginVertical: 21,
   },
 
+  /* Description */
   sectionTitle: {
     fontSize: 16,
     fontWeight: "700",
@@ -446,14 +564,52 @@ const styles = StyleSheet.create({
   },
 
   description: {
-    marginTop: 9,
-    fontSize: 14,
-    lineHeight: 22,
+    marginTop: 8,
+    fontSize: 13,
+    lineHeight: 21,
     color: "#777",
   },
 
-  /* Quantity */
+  /* Benefits */
+  benefitsCard: {
+    marginTop: 20,
+    padding: 16,
+    borderRadius: 15,
+    backgroundColor: "#fff",
+    gap: 17,
+  },
 
+  benefitRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  benefitIcon: {
+    width: 38,
+    height: 38,
+    borderRadius: 11,
+    backgroundColor: "#FFF0F4",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  benefitContent: {
+    marginLeft: 12,
+  },
+
+  benefitTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#222",
+  },
+
+  benefitText: {
+    marginTop: 3,
+    fontSize: 11,
+    color: "#999",
+  },
+
+  /* Quantity */
   quantityRow: {
     marginTop: 25,
     flexDirection: "row",
@@ -461,136 +617,137 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
 
+  quantitySubText: {
+    marginTop: 3,
+    fontSize: 10,
+    color: "#999",
+  },
+
   quantityContainer: {
     flexDirection: "row",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#E5E5E5",
-    borderRadius: 12,
+    borderColor: "#ddd",
+    backgroundColor: "#fff",
+    borderRadius: 11,
     overflow: "hidden",
   },
 
   quantityButton: {
-    width: 38,
-    height: 38,
-    justifyContent: "center",
+    width: 37,
+    height: 37,
     alignItems: "center",
-    backgroundColor: "#F7F7F7",
+    justifyContent: "center",
+    backgroundColor: "#dddddd",
   },
 
   quantityText: {
-    width: 40,
+    width: 38,
     textAlign: "center",
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: "700",
     color: "#111",
   },
 
-  /* Information Card */
-
-  infoCard: {
-    marginTop: 25,
-    padding: 17,
-    borderRadius: 16,
-    backgroundColor: "#F8F8F8",
-    gap: 18,
-  },
-
-  infoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 13,
-  },
-
-  infoTitle: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#222",
-  },
-
-  infoText: {
-    marginTop: 3,
-    fontSize: 12,
-    color: "#888",
-  },
-
-  /* Bottom Bar */
-
+  /* Bottom */
   bottomBar: {
     position: "absolute",
+    borderBlockColor:'none',
     bottom: 0,
     left: 0,
     right: 0,
     paddingHorizontal: 20,
-    paddingTop: 14,
+    paddingTop: 13,
     paddingBottom: 20,
-    backgroundColor: "#fff",
-    borderTopWidth: 1,
-    borderTopColor: "#EEEEEE",
+    backgroundColor: "transparent",
+  },
+
+  actionButtons: {
     flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
+    gap: 10,
   },
 
-  totalLabel: {
-    fontSize: 12,
-    color: "#888",
-  },
-
-  totalPrice: {
-    marginTop: 3,
-    fontSize: 20,
-    fontWeight: "800",
-    color: "#111",
-  },
-
-  addToCartButton: {
-    height: 52,
-    paddingHorizontal: 22,
-    borderRadius: 15,
-    backgroundColor: "#111",
+  cartButton: {
+    flex: 1,
+    width: 52,
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#F0D8DF",
+    borderRadius: 13,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 9,
+    backgroundColor: "#FFF7FA",
+     gap: 8,
   },
 
-  addToCartText: {
-    fontSize: 15,
+  cartButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: "#000",
+  },
+
+  payButton: {
+    flex: 1,
+    height: 50,
+    borderRadius: 13,
+    backgroundColor: "#d95778",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
+
+  payButtonText: {
+    fontSize: 14,
     fontWeight: "700",
     color: "#fff",
   },
 
   disabledButton: {
-  opacity: 0.6,
+    opacity: 0.6,
   },
-  
+
   /* Error */
+  errorIcon: {
+    width: 75,
+    height: 75,
+    borderRadius: 38,
+    backgroundColor: "#FFF2F5",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   errorTitle: {
-    marginTop: 12,
+    marginTop: 15,
     fontSize: 17,
     fontWeight: "700",
     color: "#222",
   },
 
   errorText: {
-    marginTop: 6,
+    marginTop: 7,
     fontSize: 13,
     color: "#888",
     textAlign: "center",
+    lineHeight: 20,
   },
 
   backButton: {
     marginTop: 20,
     paddingHorizontal: 22,
     paddingVertical: 12,
-    borderRadius: 10,
+    borderRadius: 11,
     backgroundColor: "#111",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 7,
   },
 
   backButtonText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
   },
+
 });

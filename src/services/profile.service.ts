@@ -2,6 +2,7 @@ import AppConfig from "@/config/app_config";
 import { getToken } from "@/helper/tokenStorage";
 import axios from "axios";
 
+
 export const getUserProfile = async() => {
 
   try {
@@ -27,11 +28,13 @@ export const getUserProfile = async() => {
 
   }catch(error: any){
 
-    console.log("Error in getUserProfile API:", error?.response?.data || error?.message || error);
+    console.error("Error in getUserProfile service:", error?.response?.data || error?.message || error);
     throw error;
   
   }
+
 };
+
 
 export const editUserProfile = async (username: string, phonenumber: string, address: string) => {
   
@@ -64,13 +67,16 @@ export const editUserProfile = async (username: string, phonenumber: string, add
 
   }catch(error:any){
 
-    console.log("Error in editUserProfile API:",error?.response?.data || error?.message || error);
+    console.error("Error in editUserProfile service:",error?.response?.data || error?.message || error);
     throw error;
   
   }
+
 };
 
+
 export const changeUserPassword = async(currentPassword: string, newPassword: string) => {
+
   try {
     const token = await getToken();
 
@@ -91,9 +97,10 @@ export const changeUserPassword = async(currentPassword: string, newPassword: st
 
   } catch (error: any) {
 
-    console.log("Error in changeUserPassword API:", error?.response?.data || error?.message || error);
+    console.error("Error in changeUserPassword service:", error?.response?.data || error?.message || error);
     throw error;
 
   }
+  
 };
 

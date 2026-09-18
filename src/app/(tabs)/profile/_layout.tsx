@@ -1,12 +1,12 @@
 import { Stack } from "expo-router";
 
-export default function AuthLayout() {
+export default function ProfileStackLayout() {
   
   return (
-    <Stack screenOptions = {{
+    <Stack screenOptions={{ 
       headerShown: false,
       contentStyle: {backgroundColor: "#f1f1f1"}
     }}/>
-  )
-
+  );
+  
 }

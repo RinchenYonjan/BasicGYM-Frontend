@@ -1,22 +1,24 @@
 import { loginUser } from "@/services/authentication.service";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    ActivityIndicator,
-    BackHandler,
-    KeyboardAvoidingView,
-    Platform,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  BackHandler,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-const BRAND = "#E5383B";
+const BRAND = "#E8291C";
 const BRAND_DARK = "#B22A2D";
 const INK = "#1A1A1E";
 const MUTED = "#8A8A93";
@@ -93,7 +95,7 @@ export default function LoginScreen() {
       if (res.data.token) {
         Toast.show({
           type: "success",
-          text1: "Login successful",
+          text1: "SignIn successful",
           text2: "Welcome back!",
           autoHide: true,
           visibilityTime: 1500,
@@ -101,10 +103,10 @@ export default function LoginScreen() {
 
         router.replace("/(tabs)/dashboard");
       }
+    
     } catch (error: any) {
-      const message =
-        error?.response?.data?.message ||
-        "Something went wrong. Please try again later.";
+      
+      const message = error?.response?.data?.message || "Something went wrong. Please try again later.";
 
       Toast.show({
         type: "error",
@@ -114,22 +116,29 @@ export default function LoginScreen() {
         visibilityTime: 1500,
         autoHide: true,
       });
+
     } finally {
       setIsSubmitting(false);
     }
+    
   };
 
   return (
     <KeyboardAvoidingView
-      behavior={Platform.OS === "ios" ? "padding" : undefined}>
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+
     
         {/* Header */}
         <View style={styles.header}>
-          <View style={styles.logoBadge}>
-            <MaterialCommunityIcons name="dumbbell" size={30} color="#FFFFFF" />
-          </View>
-          <Text style={styles.title}>Basic</Text>
-          <Text style={styles.subtitle}>Train smarter, every day</Text>
+          <Image source={require('../../../assets/app-images/app-logo.png')} style={styles.logoBadge}/>
+          <Text style={styles.subtitle}>Train smarter every day.</Text>
         </View>
 
         {/* Form Card */}
@@ -181,7 +190,7 @@ export default function LoginScreen() {
               size={20}
               color={focusedField === "password" ? BRAND : MUTED}
               style={styles.inputIcon}
-            />
+              />
             <TextInput
               style={styles.input}
               placeholder="Enter your password"
@@ -192,11 +201,11 @@ export default function LoginScreen() {
               onBlur={() => setFocusedField(null)}
               secureTextEntry={!showPassword}
               editable={!isSubmitting}
-            />
+              />
             <TouchableOpacity
               onPress={() => setShowPassword((prev) => !prev)}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-            >
+              >
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
@@ -210,7 +219,7 @@ export default function LoginScreen() {
             style={styles.forgetBtn}
             onPress={() => router.push("/email-verify")}
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-          >
+            >
             <Text style={styles.forgetBtnText}>Forgot password?</Text>
           </Pressable>
 
@@ -220,11 +229,11 @@ export default function LoginScreen() {
             onPress={handleLogin}
             disabled={isSubmitting}
             activeOpacity={0.85}
-          >
+            >
             {isSubmitting ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.loginBtnText}>Log In</Text>
+              <Text style={styles.loginBtnText}>Sign In</Text>
             )}
           </TouchableOpacity>
         </View>
@@ -236,22 +245,34 @@ export default function LoginScreen() {
             <Text style={styles.footerLink}>Sign up</Text>
           </Pressable>
         </View>
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
 
+  container: {
+    flex: 1
+  },
+
+  scrollContent: {
+    justifyContent: "center",
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+  
   header: {
     alignItems: "center",
     marginBottom: 32,
   },
 
   logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: BRAND,
+    width: 120,
+    height: 120,
+    borderRadius: 80,
+    backgroundColor: BRAND_DARK,
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 14,
@@ -262,16 +283,9 @@ const styles = StyleSheet.create({
     elevation: 6,
   },
 
-  title: {
-    fontSize: 30,
-    fontWeight: "800",
-    color: INK,
-    letterSpacing: 0.3,
-  },
-
   subtitle: {
     fontSize: 14,
-    color: MUTED,
+    color: '#000000b5',
     marginTop: 4,
   },
 
@@ -348,10 +362,10 @@ const styles = StyleSheet.create({
   loginBtn: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: BRAND,
+    backgroundColor: "#000",
     alignItems: "center",
     justifyContent: "center",
-    shadowColor: BRAND,
+    shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 5 },
@@ -359,7 +373,7 @@ const styles = StyleSheet.create({
   },
 
   loginBtnDisabled: {
-    backgroundColor: BRAND_DARK,
+    backgroundColor: "#000000c8",
     opacity: 0.8,
   },
 

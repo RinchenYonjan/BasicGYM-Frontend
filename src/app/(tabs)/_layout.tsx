@@ -3,8 +3,7 @@ import { Manrope_400Regular, Manrope_700Bold, useFonts } from "@expo-google-font
 import { Ionicons } from "@expo/vector-icons";
 import { router, Tabs } from "expo-router";
 import { useEffect } from "react";
-import { StyleSheet, Text, TextInput } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { Text, TextInput, View } from "react-native";
 
 // Global default font
 (Text as any).defaultProps = (Text as any).defaultProps || {};
@@ -14,7 +13,9 @@ import { SafeAreaView } from "react-native-safe-area-context";
 (TextInput as any).defaultProps = (TextInput as any).defaultProps || {};
 (TextInput as any).defaultProps.style = { fontFamily: "Manrope_400Regular"};
 
+
 export default function TabLayout() {
+
   const [fontsLoaded] = useFonts({
     Manrope_400Regular,
     Manrope_700Bold,
@@ -32,8 +33,10 @@ export default function TabLayout() {
         }
 
       }catch(error){
-        console.log("Error checking token:", error);
+
+        console.error("Error checking token:", error);
         router.replace("/login");
+      
       }
     };
 
@@ -46,13 +49,14 @@ export default function TabLayout() {
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
+    <View style={{flex: 1}}>
       <Tabs
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: "#5B2A6F",
           tabBarInactiveTintColor: "#8A8A8E",
-      }}>
+        }}
+      >
 
         <Tabs.Screen
           name="dashboard"
@@ -96,42 +100,7 @@ export default function TabLayout() {
           }}
         />
 
-        <Tabs.Screen
-          name="change-password"
-          options={{
-            href: null,
-          }}
-        />
-
-        <Tabs.Screen
-          name="edit-profile"
-          options={{
-            href: null,
-          }}
-        />
-
-        <Tabs.Screen
-          name="product-cart"
-          options={{
-            href: null,
-          }}
-        />
-
-        <Tabs.Screen
-          name="product-detail"
-          options={{
-            href: null,
-          }}
-        />
-
       </Tabs>
-    </SafeAreaView>
+    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
-  },
-});

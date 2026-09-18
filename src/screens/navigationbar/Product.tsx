@@ -1,3 +1,4 @@
+import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -11,7 +12,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { getAllProducts } from "../../services/product.service";
+import { getAllProduct } from "../../services/product.service";
 
 
 type Product = {
@@ -31,11 +32,13 @@ const categories = [
   "BCAA",
 ];
 
-const ProductScreen = () => {
+export default function ProductScreen() {
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
+  const { cartItems } = useCart();
+  const cartCount = cartItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) ?? 0;
 
   const {data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage} = useInfiniteQuery({
   
@@ -46,7 +49,7 @@ const ProductScreen = () => {
     queryFn: async ({ pageParam }) => {
       console.log("Fetching products with cursor:", pageParam);
 
-      const response = await getAllProducts(pageParam);
+      const response = await getAllProduct(pageParam);
 
       console.log("Product page response:", response);
 
@@ -116,8 +119,15 @@ const ProductScreen = () => {
     return (
       <Pressable
         style={styles.productCard}
-        onPress={() => console.log("Selected:", item.product_name)}
-      >
+        onPress={() => {
+          router.push({
+          pathname: "/product/detail",
+            params: {
+              id: item.id,
+            },
+          });
+        }}> 
+
         {/* Favorite Button */}
         <Pressable
           style={styles.favoriteButton}
@@ -161,13 +171,13 @@ const ProductScreen = () => {
 
         {/* Price */}
         <Text style={styles.price}>
-          RS {item.product_price}
+          RS {item.product_price}.00
         </Text>
       </Pressable>
     );
   };
 
-  return (
+  return(
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -177,7 +187,7 @@ const ProductScreen = () => {
 
         <Pressable
           style={styles.headerButton}
-          onPress={() => router.push("/(tabs)/product-cart")}
+          onPress={() => router.push("/product/cart")}
         >
           <Ionicons
             name="cart-outline"
@@ -185,11 +195,13 @@ const ProductScreen = () => {
             color="#d95778"
           />
 
-          <View style={styles.cartBadge}>
-            <Text style={styles.cartBadgeText}>
-              2
-            </Text>
-          </View>
+          {cartCount > 0 && (
+            <View style={styles.cartBadge}>
+              <Text style={styles.cartBadgeText}>
+                {cartCount > 99 ? "99+" : cartCount}
+              </Text>
+            </View>
+          )}
         </Pressable>
       </View>
 
@@ -225,15 +237,14 @@ const ProductScreen = () => {
             style={styles.sortButton}
             onPress={() =>
               setShowCategoryMenu((previous) => !previous)
-            }
-          >
+            }>
+
             <Text
               style={[
                 styles.sortText,
                 selectedCategory !== "All" &&
                   styles.activeSortText,
-              ]}
-            >
+              ]}>
               {selectedCategory}
             </Text>
 
@@ -266,15 +277,14 @@ const ProductScreen = () => {
                     onPress={() => {
                       setSelectedCategory(category);
                       setShowCategoryMenu(false);
-                    }}
-                  >
+                    }}>
+
                     <Text
                       style={[
                         styles.categoryOptionText,
                         isSelected &&
                           styles.selectedCategoryOptionText,
-                      ]}
-                    >
+                      ]}>
                       {category}
                     </Text>
 
@@ -324,14 +334,11 @@ const ProductScreen = () => {
   );
 };
 
-export default ProductScreen;
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#ffffff",
     paddingHorizontal: 19,
-    paddingTop: 20,
+    paddingTop: 4,
   },
 
   /* Header */
@@ -355,8 +362,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 38,
     borderRadius: 7,
-    borderWidth: 1,
-    borderColor: "#eadde2",
+    backgroundColor: "#fff",
     alignItems: "center",
     justifyContent: "center",
   },
@@ -365,9 +371,10 @@ const styles = StyleSheet.create({
     position: "absolute",
     right: -4,
     top: -5,
-    width: 15,
+    minWidth: 15,
     height: 15,
     borderRadius: 8,
+    paddingHorizontal: 3,
     backgroundColor: "#e95778",
     alignItems: "center",
     justifyContent: "center",
@@ -382,7 +389,7 @@ const styles = StyleSheet.create({
   /* Search */
   searchContainer: {
     height: 40,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#fff",
     borderRadius: 7,
     flexDirection: "row",
     alignItems: "center",
@@ -425,7 +432,7 @@ const styles = StyleSheet.create({
   sortButton: {
     height: 27,
     minWidth: 48,
-    backgroundColor: "#f7f7f7",
+    backgroundColor: "#fff",
     borderRadius: 5,
     paddingHorizontal: 7,
     flexDirection: "row",
@@ -450,18 +457,13 @@ const styles = StyleSheet.create({
     top: 32,
     right: 0,
     width: 145,
-
     backgroundColor: "#ffffff",
     borderRadius: 8,
-
     paddingVertical: 5,
-
     borderWidth: 1,
     borderColor: "#eeeeee",
-
     zIndex: 100,
     elevation: 10,
-
     shadowColor: "#000",
     shadowOffset: {
       width: 0,
@@ -497,8 +499,6 @@ const styles = StyleSheet.create({
   /* Product Grid */
   productList: {
     paddingBottom: 25,
-
-    // Keep list below dropdown
     zIndex: 1,
   },
 
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   productCard: {
     width: "48%",
     height: 177,
-    backgroundColor: "#fff7fa",
+    backgroundColor: "#fff",
     borderRadius: 8,
     padding: 9,
     position: "relative",

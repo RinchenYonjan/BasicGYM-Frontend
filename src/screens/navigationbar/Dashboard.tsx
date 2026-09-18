@@ -7,6 +7,7 @@ import { useCallback, useState } from 'react';
 import { Image, StyleSheet, Text, View } from "react-native";
 import { getUserProfile } from '../../services/profile.service';
 
+
 export default function DashboardScreen() {
 
     const [username, setUsername] = useState('');
@@ -38,12 +39,10 @@ export default function DashboardScreen() {
     );
 
 return (
-    <View style={{flex:1}}>
+    <View style={styles.container}>
 
-        <View style={styles.container}>
-
+        <View style={styles.subContainer}>
             <View>
-
                 <Text style={styles.profileName}>
                     {username || "User"}
                 </Text>
@@ -51,23 +50,18 @@ return (
                 <Text style={styles.profileHeader1}>
                     Stay Strong, stay consistent!
                 </Text>
-
             </View>
 
             <View>
-
                 <Image
                     style={styles.profilePicture}
                     source={{
                         uri: `https://ui-avatars.com/api/?name=${encodeURIComponent(
                             username || "User"
                         )}&background=DDDDDD&color=555555&size=256`,
-                    }}
-                />
-
+                    }}/>
             </View>
-
-    </View>
+        </View>
         <SummaryCard/>
         <PaymentDueCard/>
         <BodySection/>
@@ -78,6 +72,10 @@ return (
 const styles = StyleSheet.create({
 
     container: {
+        flex:1, 
+    },
+
+    subContainer: {
         margin: 14,
         flexDirection: "row",
         justifyContent: "space-between",

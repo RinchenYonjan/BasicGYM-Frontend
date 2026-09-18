@@ -1,109 +1,21 @@
-import { getToken } from "@/helper/tokenStorage";
+import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import { router } from "expo-router";
-import { useState } from "react";
 import {
   FlatList,
   Image,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 
-const initialCart = [
-  {
-    id: "1",
-    name: "MB Creatine Monohydrate",
-    category: "Creatine",
-    price: 2500,
-    quantity: 1,
-    image: require("../../../assets/app-images/creatine.png"),
-  },
-  {
-    id: "2",
-    name: "MB Whey Protein",
-    category: "Protein",
-    price: 6500,
-    quantity: 2,
-    image: require("../../../assets/app-images/mb protein.png"),
-  },
-  {
-    id: "3",
-    name: "C4 Pre-Workout",
-    category: "Pre-Workout",
-    price: 3500,
-    quantity: 1,
-    image: require("../../../assets/app-images/c4 pre-workout.png"),
-  },
-];
-
 export default function ProductCartScreen() {
-  const [cartItems, setCartItems] = useState(initialCart);
 
-  async function handlePayment() {
-    const token =getToken();
-    if(!token){
-      router.push("/login")
-    }
-    // const productId = 
-    // const quanitty
-    try{
+  const { cartItems, updateQuantity, removeItem } = useCart();
 
-      const res=await axios.post("http://localhost:3000/api/payment/esewa/initiate",{
-        // productId,
-        // quantity
-      },{
-        headers:{
-          Authorization:`bearer ${token}`
-        }
-      })
-      // console.log("this is respone",res.data);
-      // const link = res.data.data.deeplink;
-      // await Linking.openURL(link);
-
-    }
-    catch(err){
-
-    }
-
-
-
-
-    
-  }
-
-  const updateQuantity = (id: string, type: "increase" | "decrease") => {
-    setCartItems((items) =>
-      items.map((item) => {
-        if (item.id !== id) return item;
-
-        if (type === "increase") {
-          return {
-            ...item,
-            quantity: item.quantity + 1,
-          };
-        }
-
-        return {
-          ...item,
-          quantity: Math.max(1, item.quantity - 1),
-        };
-      })
-    );
-  };
-
-  const removeItem = (id: string) => {
-    setCartItems((items) => items.filter((item) => item.id !== id));
-  };
-
-  const subtotal = cartItems.reduce(
-    (total, item) => total + item.price * item.quantity,
-    0
-  );
+  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
 
   const deliveryFee = subtotal > 0 ? 150 : 0;
 
@@ -159,7 +71,7 @@ export default function ProductCartScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
@@ -238,20 +150,28 @@ export default function ProductCartScreen() {
 
             <TouchableOpacity
               style={styles.checkoutButton}
-              onPress={handlePayment}
-            >
+              onPress={() => {router.push({
+                pathname: "/product/bill",
+                params: {
+                  cartItems: JSON.stringify(cartItems),
+                },
+              });
+              }}>
+
               <Text style={styles.checkoutText}>Proceed to Checkout</Text>
 
               <Ionicons
                 name="arrow-forward"
                 size={20}
-                color="#fff"
+                color="#fff" 
               />
             </TouchableOpacity>
           </View>
+        
         </>
       )}
-    </SafeAreaView>
+
+    </View>
   );
 }
 

@@ -5,19 +5,19 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useRef, useState } from 'react';
 import {
-    Image,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 const OTP_LENGTH = 4;
-const PURPLE = '#5B2A6F';
+const PURPLE = '#B22A2D';
 
 export default function OtpVerificationScreen() {
   const router = useRouter();
@@ -221,7 +221,6 @@ export default function OtpVerificationScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
     paddingHorizontal: 24,
     paddingTop: 30,
     paddingBottom: 32,
@@ -233,22 +232,26 @@ const styles = StyleSheet.create({
     gap: 16,
     marginBottom: 24,
   },
+
   iconButton: {
     width: 45,
     height: 45,
     borderRadius: 12,
-    backgroundColor: '#F5F3F6',
+    backgroundColor: '#fff',
     justifyContent: 'center',
     alignItems: 'center',
   },
+  
   illustrationWrap: {
     alignItems: 'center',
     marginBottom: 24,
   },
+  
   illustration: {
     width: 160,
     height: 160,
   },
+
   title: {
     fontSize: 22,
     fontWeight: '700',
@@ -256,6 +259,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 12,
   },
+
   greeting: {
     fontSize: 15,
     fontWeight: '600',
@@ -263,6 +267,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 6,
   },
+
   subtitle: {
     fontSize: 13,
     color: '#8A8A8A',
@@ -270,42 +275,51 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     marginBottom: 32,
   },
+
   otpRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     gap: 14,
     marginBottom: 20,
   },
+
   otpBox: {
     width: 56,
     height: 56,
     borderWidth: 1,
     borderColor: '#D9D9D9',
+    backgroundColor:"#fff",
     borderRadius: 10,
     fontSize: 20,
     fontWeight: '600',
     color: '#1A1A1A',
   },
+
   resendWrap: {
     alignItems: 'center',
   },
+
   resendText: {
     fontSize: 13,
     color: '#8A8A8A',
   },
+
   resendLink: {
     color: PURPLE,
     fontWeight: '700',
   },
+
   submitButton: {
     backgroundColor: PURPLE,
     borderRadius: 12,
     paddingVertical: 16,
     alignItems: 'center',
   },
+
   submitText: {
     color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '700',
-  },
+  }
+
 });

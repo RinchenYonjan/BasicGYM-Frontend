@@ -3,18 +3,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from "react-native";
 import Toast from "react-native-toast-message";
 
-const PURPLE = "#5B2A6F";
+const PURPLE = "#B22A2D";
 const GREEN = "#22C55E";
 const GREEN_BG = "#DCFCE7";
 
@@ -188,9 +188,9 @@ export default function CreatePasswordScreen() {
 }
 
 const styles = StyleSheet.create({
+
   container: {
     flex: 1,
-    backgroundColor: "#FFFFFF",
     paddingHorizontal: 24,
     paddingTop: 30,
     paddingBottom: 32,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 12,
-    backgroundColor: '#F5F3F6',
+    backgroundColor: '#fff',
     alignItems: "center",
     justifyContent: "center",
   },
@@ -247,12 +247,13 @@ const styles = StyleSheet.create({
 
   inputWrapper: {
     position: "relative",
-    marginBottom: 20,
+    marginBottom: 20
   },
 
   input: {
     height: 54,
     borderWidth: 1,
+      backgroundColor:"#fff",
     borderColor: "#D0D0D0",
     borderRadius: 10,
     paddingLeft: 15,
@@ -298,6 +299,7 @@ const styles = StyleSheet.create({
     borderColor: "#D0D0D0",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor:"#fff",
     marginRight: 10,
   },
 

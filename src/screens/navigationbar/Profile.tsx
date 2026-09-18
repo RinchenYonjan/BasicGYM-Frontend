@@ -181,7 +181,7 @@ return (
 
           <TouchableOpacity
             activeOpacity={0.6}
-           onPress={() => router.push("/edit-profile")}>
+           onPress={() => router.push("/profile/edit")}>
 
             <Text style={styles.editText}>
               Edit
@@ -212,7 +212,7 @@ return (
 
           <NavRow
             label="Change password"
-            onPress={() => router.push("/change-password")}
+            onPress={() => router.push("/profile/change-password")}
             isLast
             chevron={false}
             />
@@ -244,7 +244,7 @@ return (
           }}>
 
           <Text style={styles.logoutText}>
-            Log out
+            Sign out
           </Text>
         </TouchableOpacity>
     </View>
@@ -253,13 +253,12 @@ return (
 
 const styles = StyleSheet.create({
   safeArea: {
+    flex: 1,
     paddingHorizontal: 18,
-    paddingBottom: 24
+    paddingBottom: 24,
   },
 
   loadingContainer: {
-    flex: 1,
-    backgroundColor: "#F2F1F5",
     alignItems: "center",
     justifyContent: "center",
   },

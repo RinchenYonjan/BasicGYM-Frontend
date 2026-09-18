@@ -144,7 +144,7 @@ export default function EmailVerificationScreen() {
           <StepProgressBar
             currentStep={CURRENT_STEP}
             totalSteps={TOTAL_STEPS}
-            color="#5B2A6F"
+            color="#B22A2D"
             />
 
           <TouchableOpacity
@@ -167,7 +167,7 @@ export default function EmailVerificationScreen() {
             <Ionicons
               name="mail-outline"
               size={42}
-              color="#5B2A6F"
+              color="#B22A2D"
               />
           </View>
 
@@ -248,8 +248,7 @@ export default function EmailVerificationScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: "#FFFFFF",
+    flex: 1
   },
 
   scrollContainer: {
@@ -268,7 +267,7 @@ const styles = StyleSheet.create({
     width: 45,
     height: 45,
     borderRadius: 12,
-    backgroundColor: "#F5F3F6",
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
   },
@@ -283,7 +282,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#F3EDF5",
+    backgroundColor: "#fff",
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 28,
@@ -316,6 +315,7 @@ const styles = StyleSheet.create({
     height: 58,
     borderWidth: 1,
     borderColor: "#E2E2E2",
+    backgroundColor:"#fff",
     borderRadius: 14,
     paddingHorizontal: 16,
     marginBottom: 24,
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
 
   button: {
     height: 56,
-    backgroundColor: "#5B2A6F",
+    backgroundColor: "#B22A2D",
     borderRadius: 14,
     flexDirection: "row",
     justifyContent: "center",

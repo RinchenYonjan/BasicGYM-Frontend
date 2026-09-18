@@ -136,7 +136,7 @@ export default function EditProfileScreen() {
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() =>
-            router.replace("/(tabs)/profile")
+            router.back()
           }
           style={styles.backButton}
           activeOpacity={0.7}
