@@ -1,40 +1,284 @@
-import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useEffect, useMemo, useState } from "react";
 import {
+  ActivityIndicator,
   Alert,
   FlatList,
   Image,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
+import { getCart, removeFromCart, updateCartItem } from "../../services/cartItem.service";
 
+
+interface BackendCartItem {
+  id: string;
+  user_id: string;
+  product_id: string;
+  quantity: number;
+  createdAt: string;
+  updatedAt: string;
+
+  product: {
+    id: string;
+    product_name: string;
+    product_category: string;
+    product_price: number;
+    product_image: string;
+  };
+}
+
+interface CartItem {
+  id: string;
+  productId: string;
+  name: string;
+  category: string;
+  price: number;
+  image: any;
+  quantity: number;
+}
 
 export default function ProductCartScreen() {
+  
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [updatingProductId, setUpdatingProductId] = useState<string | null>(
+    null
+  );
 
-  const { cartItems, updateQuantity, removeItem } = useCart();
 
-  const subtotal = cartItems.reduce((total, item) => total + item.price * item.quantity, 0);
+  /* Convert backend cart data to frontend cart format */
+  const formatCartItems = (backendItems: BackendCartItem[]
+  ): CartItem[] => {
+    return backendItems.map((item) => ({
+      id: item.id,
+      productId: item.product_id,
+      name: item.product.product_name,
+      category: item.product.product_category,
+      price: Number(item.product.product_price),
+      image: item.product.product_image,
+      quantity: item.quantity,
+    }));
+  };
 
+
+  /* Fetch Cart */
+  const fetchCart = async () => {
+    try {
+      setLoading(true);
+
+      const response = await getCart();
+
+      if (response?.success) {
+        const formattedItems = formatCartItems(response.data || []);
+
+        setCartItems(formattedItems);
+      } else {
+        setCartItems([]);
+      }
+    } catch (error: any) {
+      console.error("Fetch cart error:", error);
+
+      Alert.alert(
+        "Cart Error",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to load your cart."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  /* Load cart when screen opens */
+  useEffect(() => {
+    fetchCart();
+  }, []);
+
+
+  /* Increase / Decrease Quantity */
+  const updateQuantity = async (
+    item: CartItem,
+    action: "increase" | "decrease"
+  ) => {
+    let newQuantity = item.quantity;
+
+    if (action === "increase") {
+      newQuantity = item.quantity + 1;
+    }
+
+    if (action === "decrease") {
+      newQuantity = item.quantity - 1;
+    }
+
+    /* If quantity becomes 0, remove the item */
+    if (newQuantity <= 0) {
+      removeItem(item);
+      return;
+    }
+
+    try {
+      setUpdatingProductId(item.productId);
+
+      /* Optimistically update UI */
+      setCartItems((currentItems) =>
+        currentItems.map((cartItem) =>
+          cartItem.productId === item.productId
+            ? {
+                ...cartItem,
+                quantity: newQuantity,
+              }
+            : cartItem
+        )
+      );
+
+      /* Update database */
+      const response = await updateCartItem({
+        product_id: item.productId,
+        quantity: newQuantity,
+      });
+
+      if (!response?.success) {
+
+        /* If backend fails, reload the real cart */
+        await fetchCart();
+
+        Alert.alert(
+          "Update Failed",
+          response?.message || "Could not update cart quantity."
+        );
+      }
+    } catch (error: any) {
+      console.error("Update cart quantity error:", error);
+
+      /* Restore actual database state */
+      await fetchCart();
+
+      Alert.alert(
+        "Update Failed",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Could not update cart quantity."
+      );
+
+    } finally {
+      setUpdatingProductId(null);
+    }
+
+  };
+
+  /* Remove Item */
+  const removeItem = async (item: CartItem) => {
+    try {
+      setUpdatingProductId(item.productId);
+
+      /*
+      | Remove immediately from UI
+      */
+
+      setCartItems((currentItems) =>
+        currentItems.filter(
+          (cartItem) => cartItem.productId !== item.productId
+        )
+      );
+
+      /* Remove from database */
+      const response = await removeFromCart(item.productId);
+
+      if (!response?.success) {
+        await fetchCart();
+
+        Alert.alert(
+          "Remove Failed",
+          response?.message || "Could not remove item from cart."
+        );
+      }
+    } catch (error: any) {
+      console.error("Remove cart item error:", error);
+
+      /* Restore database state */
+      await fetchCart();
+
+      Alert.alert(
+        "Remove Failed",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Could not remove item from cart."
+      );
+    } finally {
+      setUpdatingProductId(null);
+    }
+  };
+
+  /* Confirm Remove */
+  const confirmRemoveItem = (item: CartItem) => {
+    Alert.alert(
+      "Remove Item",
+      `Are you sure you want to remove "${item.name}" from your cart?`,
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Yes",
+          style: "destructive",
+          onPress: () => removeItem(item),
+        },
+      ]
+    );
+  };
+
+  /* Subtotal */
+  const subtotal = useMemo(() => {
+    return cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
+  }, [cartItems]);
+
+  /* Delivery Fee */
   const deliveryFee = subtotal > 0 ? 150 : 0;
 
+  /* Total */
   const total = subtotal + deliveryFee;
 
-  const renderCartItem = ({ item }: any) => {
+  /* Render Cart Item */
+  const renderCartItem = ({
+    item,
+  }: {
+    item: CartItem;
+  }) => {
+    const isUpdating = updatingProductId === item.productId;
+
     return (
       <View style={styles.cartItem}>
+        
         {/* Product Image */}
         <View style={styles.imageContainer}>
-          <Image source={item.image} style={styles.productImage} />
+          <Image
+            source={
+              typeof item.image === "string"
+                ? { uri: item.image }
+                : item.image
+            }
+            style={styles.productImage}
+          />
         </View>
 
         {/* Product Details */}
         <View style={styles.productDetails}>
-          <Text style={styles.category}>{item.category}</Text>
+          <Text style={styles.category}>
+            {item.category}
+          </Text>
 
-          <Text style={styles.productName} numberOfLines={2}>
+          <Text
+            style={styles.productName}
+            numberOfLines={2}>
             {item.name}
           </Text>
 
@@ -42,42 +286,59 @@ export default function ProductCartScreen() {
             Rs. {item.price.toLocaleString()}
           </Text>
 
-          {/* Quantity */}
+          {/* Quantity + Delete */}
           <View style={styles.bottomRow}>
             <View style={styles.quantityContainer}>
               <TouchableOpacity
                 style={styles.quantityButton}
-                onPress={() => updateQuantity(item.id, "decrease")}>
-                <Ionicons name="remove" size={18} color="#222" />
+                disabled={isUpdating}
+                onPress={() =>
+                  updateQuantity(item, "decrease")
+                }>
+                <Ionicons
+                  name="remove"
+                  size={18}
+                  color="#222"
+                />
               </TouchableOpacity>
 
-              <Text style={styles.quantity}>{item.quantity}</Text>
+              {isUpdating ? (
+                <View style={styles.quantityLoading}>
+                  <ActivityIndicator
+                    size="small"
+                    color="#222"
+                  />
+                </View>
+              ) : (
+                <Text style={styles.quantity}>
+                  {item.quantity}
+                </Text>
+              )}
 
               <TouchableOpacity
                 style={styles.quantityButton}
-                onPress={() => updateQuantity(item.id, "increase")}>
-                <Ionicons name="add" size={18} color="#222" />
+                disabled={isUpdating}
+                onPress={() =>
+                  updateQuantity(item, "increase")
+                }>
+                <Ionicons
+                  name="add"
+                  size={18}
+                  color="#222"
+                />
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => {
-              Alert.alert(
-                "Remove Item",
-                `Are you sure you want to remove "${item.name}" from your cart?`,
-                [
-                  {
-                    text: "Cancel",
-                    style: "cancel"
-                  },
-                  {
-                    text: "Yes",
-                    style: "destructive",
-                    onPress: () => removeItem(item.id), 
-                  },
-                ]
-              );
-            }}>
-              <Ionicons name="trash-outline" size={21} color="#E53935" />
+            <TouchableOpacity
+              disabled={isUpdating}
+              onPress={() =>
+                confirmRemoveItem(item)
+              }>
+              <Ionicons
+                name="trash-outline"
+                size={21}
+                color="#E53935"
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -85,25 +346,46 @@ export default function ProductCartScreen() {
     );
   };
 
+  /* Loading Screen */
+  if (loading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator
+          size="large"
+          color="#222"
+        />
+
+        <Text style={styles.loadingText}>
+          Loading your cart...
+        </Text>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       {/* Header */}
+
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={()=>{
-            router.back();
-          }}>
-            
-          <Ionicons name="arrow-back" size={24} color="#222" />
+          onPress={() => router.back()}
+        >
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color="#222"
+          />
         </TouchableOpacity>
 
-        <Text style={styles.headerTitle}>My Cart</Text>
-
+        <Text style={styles.headerTitle}>
+          My Cart
+        </Text>
       </View>
 
       {cartItems.length === 0 ? (
         /* Empty Cart */
+
         <View style={styles.emptyContainer}>
           <View style={styles.emptyIconContainer}>
             <Ionicons
@@ -113,41 +395,58 @@ export default function ProductCartScreen() {
             />
           </View>
 
-          <Text style={styles.emptyTitle}>Your cart is empty</Text>
+          <Text style={styles.emptyTitle}>
+            Your cart is empty
+          </Text>
 
           <Text style={styles.emptyText}>
-            Looks like you haven't added any supplements yet.
+            Looks like you haven't added any
+            supplements yet.
           </Text>
 
           <TouchableOpacity
             style={styles.shopButton}
-            onPress={() => router.push("/product")}
+            onPress={() =>
+              router.push("/product")
+            }
           >
-            <Text style={styles.shopButtonText}>Start Shopping</Text>
+            <Text style={styles.shopButtonText}>
+              Start Shopping
+            </Text>
           </TouchableOpacity>
         </View>
       ) : (
         <>
           {/* Cart List */}
+
           <FlatList
             data={cartItems}
             renderItem={renderCartItem}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.productId}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={
+              styles.listContent
+            }
           />
 
           {/* Bottom Summary */}
+
           <View style={styles.summaryContainer}>
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Subtotal</Text>
+              <Text style={styles.summaryLabel}>
+                Subtotal
+              </Text>
+
               <Text style={styles.summaryValue}>
                 Rs. {subtotal.toLocaleString()}
               </Text>
             </View>
 
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Delivery Fee</Text>
+              <Text style={styles.summaryLabel}>
+                Delivery Fee
+              </Text>
+
               <Text style={styles.summaryValue}>
                 Rs. {deliveryFee.toLocaleString()}
               </Text>
@@ -156,7 +455,9 @@ export default function ProductCartScreen() {
             <View style={styles.divider} />
 
             <View style={styles.summaryRow}>
-              <Text style={styles.totalLabel}>Total</Text>
+              <Text style={styles.totalLabel}>
+                Total
+              </Text>
 
               <Text style={styles.totalValue}>
                 Rs. {total.toLocaleString()}
@@ -165,30 +466,33 @@ export default function ProductCartScreen() {
 
             <TouchableOpacity
               style={styles.checkoutButton}
-              onPress={() => {router.push({
-                pathname: "/product/bill",
-                params: {
-                  cartItems: JSON.stringify(cartItems),
-                },
-              });
-              }}>
-
-              <Text style={styles.checkoutText}>Proceed to Checkout</Text>
+              onPress={() => {
+                router.push({
+                  pathname: "/product/bill",
+                  params: {
+                    cartItems:
+                      JSON.stringify(cartItems),
+                  },
+                });
+              }}
+            >
+              <Text style={styles.checkoutText}>
+                Proceed to Checkout
+              </Text>
 
               <Ionicons
                 name="arrow-forward"
                 size={20}
-                color="#fff" 
+                color="#fff"
               />
             </TouchableOpacity>
           </View>
-        
         </>
       )}
-
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
@@ -196,7 +500,21 @@ const styles = StyleSheet.create({
     backgroundColor: "#F7F7F7",
   },
 
-  // Header
+  loadingContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F7F7F7",
+  },
+
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#777",
+  },
+
+  /* Header */
+
   header: {
     height: 65,
     paddingHorizontal: 20,
@@ -207,7 +525,7 @@ const styles = StyleSheet.create({
   },
 
   backButton: {
-    position: 'absolute',
+    position: "absolute",
     left: 14,
     width: 40,
     height: 40,
@@ -220,23 +538,17 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "700",
     color: "#222",
-    alignItems: "center",
-    justifyContent: "center",
   },
 
-  itemCount: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "700",
-  },
+  /* List */
 
-  // List
   listContent: {
     padding: 16,
     paddingBottom: 20,
   },
 
-  // Cart Item
+  /* Cart Item */
+
   cartItem: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -328,7 +640,15 @@ const styles = StyleSheet.create({
     color: "#222",
   },
 
-  // Summary
+  quantityLoading: {
+    width: 30,
+    height: 30,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  /* Summary */
+
   summaryContainer: {
     backgroundColor: "#fff",
     paddingHorizontal: 20,
@@ -401,7 +721,8 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
 
-  // Empty Cart
+  /* Empty Cart */
+
   emptyContainer: {
     flex: 1,
     alignItems: "center",
