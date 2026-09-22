@@ -2,6 +2,7 @@ import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import {
+  Alert,
   FlatList,
   Image,
   StyleSheet,
@@ -46,8 +47,7 @@ export default function ProductCartScreen() {
             <View style={styles.quantityContainer}>
               <TouchableOpacity
                 style={styles.quantityButton}
-                onPress={() => updateQuantity(item.id, "decrease")}
-              >
+                onPress={() => updateQuantity(item.id, "decrease")}>
                 <Ionicons name="remove" size={18} color="#222" />
               </TouchableOpacity>
 
@@ -55,13 +55,28 @@ export default function ProductCartScreen() {
 
               <TouchableOpacity
                 style={styles.quantityButton}
-                onPress={() => updateQuantity(item.id, "increase")}
-              >
+                onPress={() => updateQuantity(item.id, "increase")}>
                 <Ionicons name="add" size={18} color="#222" />
               </TouchableOpacity>
             </View>
 
-            <TouchableOpacity onPress={() => removeItem(item.id)}>
+            <TouchableOpacity onPress={() => {
+              Alert.alert(
+                "Remove Item",
+                `Are you sure you want to remove "${item.name}" from your cart?`,
+                [
+                  {
+                    text: "Cancel",
+                    style: "cancel"
+                  },
+                  {
+                    text: "Yes",
+                    style: "destructive",
+                    onPress: () => removeItem(item.id), 
+                  },
+                ]
+              );
+            }}>
               <Ionicons name="trash-outline" size={21} color="#E53935" />
             </TouchableOpacity>
           </View>
@@ -77,9 +92,9 @@ export default function ProductCartScreen() {
         <TouchableOpacity
           style={styles.backButton}
           onPress={()=>{
-            router.replace('/product');
-          }}
-        >
+            router.back();
+          }}>
+            
           <Ionicons name="arrow-back" size={24} color="#222" />
         </TouchableOpacity>
 
@@ -374,7 +389,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     backgroundColor: "#222",
     marginTop: 14,
-
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
@@ -424,7 +438,7 @@ const styles = StyleSheet.create({
     height: 50,
     paddingHorizontal: 28,
     borderRadius: 12,
-    backgroundColor: "#222",
+    backgroundColor: "#d95778",
     alignItems: "center",
     justifyContent: "center",
   },

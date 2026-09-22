@@ -13,8 +13,8 @@ export default function DashboardScreen() {
     const [username, setUsername] = useState('');
 
     const fetchProfile = async () => {
-        try {
 
+        try {
             const response = await getUserProfile();
 
             console.log("Header user:", response);
