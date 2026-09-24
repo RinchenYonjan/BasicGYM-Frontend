@@ -6,7 +6,7 @@ import axios from "axios";
 export const getUserProfile = async() => {
 
   try {
-    const token = await getToken();
+    const token = getToken();
 
     if(!token){
       throw new Error("Token not found");
@@ -39,7 +39,7 @@ export const getUserProfile = async() => {
 export const editUserProfile = async (username: string, phonenumber: string, address: string) => {
   
   try {
-    const token = await getToken();
+    const token = getToken();
 
     if(!token){
       throw new Error("Token not found");
@@ -78,7 +78,7 @@ export const editUserProfile = async (username: string, phonenumber: string, add
 export const changeUserPassword = async(currentPassword: string, newPassword: string) => {
 
   try {
-    const token = await getToken();
+    const token = getToken();
 
     const response = await axios.put(
       `${AppConfig.baseURL}/api/user/change-password`,

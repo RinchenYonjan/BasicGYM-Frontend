@@ -1,6 +1,5 @@
-import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
@@ -13,53 +12,117 @@ import {
   Text,
   View,
 } from "react-native";
+import { addToCart } from "../../services/cartItem.service";
 import { getProductById } from "../../services/product.service";
 
 
 export default function ProductDetailScreen() {
-
+  
   const { id } = useLocalSearchParams<{ id: string }>();
+
   const [quantity, setQuantity] = useState(1);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [isAddingToCart, setIsAddingToCart] = useState(false);
   const [isPaying, setIsPaying] = useState(false);
-  const { addToCart } = useCart();
 
+  const queryClient = useQueryClient();
+
+  // Get product
   const {data: product, isLoading, isError} = useQuery({
     queryKey: ["product", id],
-    queryFn: () => getProductById(id),
+    queryFn: () => getProductById(String(id)),
     enabled: !!id,
   });
 
-  
-  // Quantity
+  // Increase quantity
   const increaseQuantity = () => {
     setQuantity((previous) => previous + 1);
   };
 
+  // Decrease quantity
   const decreaseQuantity = () => {
     setQuantity((previous) => Math.max(1, previous - 1));
   };
 
-  // Add to cart
-  const handleAddToCart = () => {
-    
-    if (!product) return;
-    addToCart(
-    {
-      id: String(product.id),
-      name: product.product_name,
-      category: product.product_category,
-      price: Number(product.product_price),
-      image: {uri: product.product_image},
-    },
-      quantity
-    );
-    
-    Alert.alert(
-      "Added to Cart",
-      `${product.product_name} has been added to your cart.`
-    );
+  // Add product to cart
+  const handleAddToCart = async () => {
 
+    if (!product) {
+      return;
+    }
+
+    try {
+      setIsAddingToCart(true);
+
+      const response = await addToCart({
+        product_id: String(product.id),
+        quantity: quantity,
+      });
+
+      console.log("Add to cart response:", response);
+
+      if (response?.success) {
+        // Refresh/invalidate all queries using ["cart"]
+        await queryClient.invalidateQueries({
+          queryKey: ["cart"],
+        });
+
+        Alert.alert(
+          "Added to Cart",
+          `${product.product_name} has been added to your cart.`
+        );
+      } else {
+        Alert.alert(
+          "Cart Error",
+          response?.message || "Failed to add product to cart."
+        );
+      }
+    } catch (error: any) {
+
+      console.error("Add to cart error:", error);
+
+      Alert.alert(
+        "Cart Error",
+        error?.response?.data?.message ||
+          error?.message ||
+          "Failed to add product to cart."
+      );
+
+    } finally {
+      setIsAddingToCart(false);
+    }
+
+  };
+
+  // Buy Now
+  const handleBuyNow = async () => {
+
+    if (!product) {
+      return;
+    }
+
+    try {
+      setIsPaying(true);
+
+      router.push({
+        pathname: "/product/bill",
+        params: {
+          productId: String(product.id),
+          quantity: quantity.toString(),
+          mode: "buy-now",
+        },
+      });
+    } catch (error) {
+      console.error("Buy now error:", error);
+
+      Alert.alert(
+        "Error",
+        "Unable to proceed to checkout. Please try again."
+      );
+    } finally {
+      setIsPaying(false);
+    }
+    
   };
 
   // Loading
@@ -68,9 +131,7 @@ export default function ProductDetailScreen() {
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#d95778" />
 
-        <Text style={styles.loadingText}>
-          Loading product...
-        </Text>
+        <Text style={styles.loadingText}>Loading product...</Text>
       </View>
     );
   }
@@ -87,9 +148,7 @@ export default function ProductDetailScreen() {
           />
         </View>
 
-        <Text style={styles.errorTitle}>
-          Unable to load product
-        </Text>
+        <Text style={styles.errorTitle}>Unable to load product</Text>
 
         <Text style={styles.errorText}>
           Something went wrong while loading this product.
@@ -105,9 +164,7 @@ export default function ProductDetailScreen() {
             color="#fff"
           />
 
-          <Text style={styles.backButtonText}>
-            Go Back
-          </Text>
+          <Text style={styles.backButtonText}>Go Back</Text>
         </Pressable>
       </View>
     );
@@ -118,18 +175,16 @@ export default function ProductDetailScreen() {
 
   return (
     <View style={styles.container}>
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
 
         {/* Header */}
         <View style={styles.header}>
-
           <Pressable
             style={styles.iconButton}
-            onPress={() => router.back()}
-          >
+            onPress={() => router.back()}>
+
             <Ionicons
               name="arrow-back"
               size={21}
@@ -145,20 +200,17 @@ export default function ProductDetailScreen() {
             style={styles.iconButton}
             onPress={() =>
               setIsFavorite((previous) => !previous)
-            }
-          >
+            }>
             <Ionicons
               name={isFavorite ? "heart" : "heart-outline"}
               size={22}
               color={isFavorite ? "#d95778" : "#111"}
             />
           </Pressable>
-
         </View>
 
         {/* Product Image */}
         <View style={styles.imageContainer}>
-
           <View style={styles.imageBadge}>
             <Text style={styles.imageBadgeText}>
               {product.product_category}
@@ -172,12 +224,10 @@ export default function ProductDetailScreen() {
             style={styles.image}
             resizeMode="contain"
           />
-
         </View>
 
         {/* Product Content */}
         <View style={styles.content}>
-
           {/* Category */}
           <Text style={styles.category}>
             {product.product_category}
@@ -190,9 +240,7 @@ export default function ProductDetailScreen() {
 
           {/* Rating */}
           <View style={styles.ratingContainer}>
-
             <View style={styles.ratingBox}>
-
               <Ionicons
                 name="star"
                 size={15}
@@ -202,13 +250,11 @@ export default function ProductDetailScreen() {
               <Text style={styles.ratingText}>
                 4.8
               </Text>
-
             </View>
 
             <Text style={styles.reviewText}>
               120 Reviews
             </Text>
-
           </View>
 
           {/* Price */}
@@ -231,9 +277,7 @@ export default function ProductDetailScreen() {
 
           {/* Benefits */}
           <View style={styles.benefitsCard}>
-
             <View style={styles.benefitRow}>
-
               <View style={styles.benefitIcon}>
                 <Ionicons
                   name="shield-checkmark-outline"
@@ -251,11 +295,9 @@ export default function ProductDetailScreen() {
                   Carefully selected products
                 </Text>
               </View>
-
             </View>
 
             <View style={styles.benefitRow}>
-
               <View style={styles.benefitIcon}>
                 <Ionicons
                   name="car-outline"
@@ -273,11 +315,9 @@ export default function ProductDetailScreen() {
                   Delivered to your doorstep
                 </Text>
               </View>
-
             </View>
 
             <View style={styles.benefitRow}>
-
               <View style={styles.benefitIcon}>
                 <Ionicons
                   name="refresh-outline"
@@ -295,14 +335,11 @@ export default function ProductDetailScreen() {
                   Hassle-free return policy
                 </Text>
               </View>
-
             </View>
-
           </View>
 
           {/* Quantity */}
           <View style={styles.quantityRow}>
-
             <View>
               <Text style={styles.sectionTitle}>
                 Quantity
@@ -314,7 +351,6 @@ export default function ProductDetailScreen() {
             </View>
 
             <View style={styles.quantityContainer}>
-
               <Pressable
                 style={styles.quantityButton}
                 onPress={decreaseQuantity}
@@ -340,34 +376,52 @@ export default function ProductDetailScreen() {
                   color="#111"
                 />
               </Pressable>
-
             </View>
-
           </View>
 
-        </View>
+          {/* Total */}
+          <View style={styles.totalRow}>
+            <Text style={styles.totalLabel}>
+              Total
+            </Text>
 
+            <Text style={styles.totalPrice}>
+              Rs {totalPrice.toFixed(2)}
+            </Text>
+          </View>
+        </View>
       </ScrollView>
 
       {/* Bottom Purchase Bar */}
       <View style={styles.bottomBar}>
-
         <View style={styles.actionButtons}>
-
-          {/* Cart */}
+          {/* Add To Cart */}
           <Pressable
-            style={styles.cartButton}
+            style={[
+              styles.cartButton,
+              isAddingToCart && styles.disabledButton,
+            ]}
             onPress={handleAddToCart}
+            disabled={isAddingToCart || isPaying}
           >
-            <Ionicons
-              name="cart-outline"
-              size={21}
-              color="#d95778"
-            />
+            {isAddingToCart ? (
+              <ActivityIndicator
+                size="small"
+                color="#d95778"
+              />
+            ) : (
+              <>
+                <Ionicons
+                  name="cart-outline"
+                  size={21}
+                  color="#d95778"
+                />
 
-            <Text style={styles.cartButtonText}>
-              Add to Cart
-            </Text>
+                <Text style={styles.cartButtonText}>
+                  Add to Cart
+                </Text>
+              </>
+            )}
           </Pressable>
 
           {/* Buy Now */}
@@ -376,42 +430,38 @@ export default function ProductDetailScreen() {
               styles.payButton,
               isPaying && styles.disabledButton,
             ]}
-            onPress={() => 
-              router.push({
-                pathname: "/product/bill",
-                params: {
-                  productId: String(product.id),
-                  quantity: quantity.toString(),
-                  mode: "buy-now",
-                },
-              })
-            }
-            disabled={isPaying}>
-          
-            <Ionicons
-              name="wallet-outline"
-              size={20}
-              color="#fff"
-            />
+            onPress={handleBuyNow}
+            disabled={isPaying || isAddingToCart}>
+            {isPaying ? (
+              <ActivityIndicator
+                size="small"
+                color="#fff"
+              />
+            ) : (
+              <>
+                <Ionicons
+                  name="wallet-outline"
+                  size={20}
+                  color="#fff"
+                />
 
-            <Text style={styles.payButtonText}>
-              Buy Now
-            </Text>
-      
+                <Text style={styles.payButtonText}>
+                  Buy Now
+                </Text>
+              </>
+            )}
           </Pressable>
-
         </View>
-
       </View>
-
     </View>
   );
-};
+}
+
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
+    backgroundColor: "#fff",
   },
 
   scrollContent: {
@@ -649,10 +699,32 @@ const styles = StyleSheet.create({
     color: "#111",
   },
 
+  /* Total */
+  totalRow: {
+    marginTop: 25,
+    paddingTop: 18,
+    borderTopWidth: 1,
+    borderTopColor: "#EEEEEE",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111",
+  },
+
+  totalPrice: {
+    fontSize: 20,
+    fontWeight: "800",
+    color: "#d95778",
+  },
+
   /* Bottom */
   bottomBar: {
     position: "absolute",
-    borderBlockColor:'none',
     bottom: 0,
     left: 0,
     right: 0,
@@ -669,7 +741,6 @@ const styles = StyleSheet.create({
 
   cartButton: {
     flex: 1,
-    width: 52,
     height: 50,
     borderWidth: 1,
     borderColor: "#F0D8DF",
@@ -678,7 +749,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#FFF7FA",
-     gap: 8,
+    gap: 8,
   },
 
   cartButtonText: {
@@ -749,5 +820,4 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "700",
   },
-
 });

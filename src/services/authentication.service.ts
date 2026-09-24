@@ -15,14 +15,9 @@ export const loginUser = async(email:string, password:string)=>{
       password:password
     })
     
-    console.log("This is response",response.data);
-    console.log("This is email from response",email);
-    console.log("This is password from response",password)
-    console.log("This is token from response",response?.data?.data.token)
-    
     const token = response?.data?.data.token;
 
-    const t= await setToken(token);
+    const t = setToken(token);
     console.log("This is t",t);
         
     return response.data;
@@ -85,7 +80,7 @@ export const sendOtp =async(email:string)=>{
 export const createUserPassword = async(newPassword: string) => {
 
   try {
-    const token = await getToken();
+    const token = getToken();
 
     const response = await axios.put(
       `${AppConfig.baseURL}/api/user/create-password`,
@@ -114,7 +109,7 @@ export const createUserPassword = async(newPassword: string) => {
 export const getUserProfile = async() => {
 
   try {
-    const token = await getToken();
+    const token = getToken();
 
     if(!token){
       throw new Error("Token not found");

@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import {
@@ -42,16 +43,17 @@ interface CartItem {
 }
 
 export default function ProductCartScreen() {
-  
+  const queryClient = useQueryClient();
+
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [updatingProductId, setUpdatingProductId] = useState<string | null>(
     null
   );
 
-
-  /* Convert backend cart data to frontend cart format */
-  const formatCartItems = (backendItems: BackendCartItem[]
+  /* Convert backend cart data into frontend cart format */
+  const formatCartItems = (
+    backendItems: BackendCartItem[]
   ): CartItem[] => {
     return backendItems.map((item) => ({
       id: item.id,
@@ -60,10 +62,9 @@ export default function ProductCartScreen() {
       category: item.product.product_category,
       price: Number(item.product.product_price),
       image: item.product.product_image,
-      quantity: item.quantity,
+      quantity: Number(item.quantity),
     }));
   };
-
 
   /* Fetch Cart */
   const fetchCart = async () => {
@@ -72,8 +73,12 @@ export default function ProductCartScreen() {
 
       const response = await getCart();
 
+      console.log("Cart response:", response);
+
       if (response?.success) {
-        const formattedItems = formatCartItems(response.data || []);
+        const formattedItems = formatCartItems(
+          response.data || []
+        );
 
         setCartItems(formattedItems);
       } else {
@@ -93,12 +98,10 @@ export default function ProductCartScreen() {
     }
   };
 
-
   /* Load cart when screen opens */
   useEffect(() => {
     fetchCart();
   }, []);
-
 
   /* Increase / Decrease Quantity */
   const updateQuantity = async (
@@ -115,16 +118,16 @@ export default function ProductCartScreen() {
       newQuantity = item.quantity - 1;
     }
 
-    /* If quantity becomes 0, remove the item */
+    /* If quantity becomes 0, remove the product from cart. */
     if (newQuantity <= 0) {
-      removeItem(item);
+      await removeItem(item);
       return;
     }
 
     try {
       setUpdatingProductId(item.productId);
 
-      /* Optimistically update UI */
+      /* Optimistic UI update */
       setCartItems((currentItems) =>
         currentItems.map((cartItem) =>
           cartItem.productId === item.productId
@@ -142,18 +145,28 @@ export default function ProductCartScreen() {
         quantity: newQuantity,
       });
 
-      if (!response?.success) {
+      console.log("Update cart response:", response);
 
-        /* If backend fails, reload the real cart */
+      /* Backend rejected the update */
+      if (!response?.success) {
         await fetchCart();
 
         Alert.alert(
           "Update Failed",
-          response?.message || "Could not update cart quantity."
+          response?.message ||
+            "Could not update cart quantity."
         );
+
+        return;
       }
+
+      /* Tell React Query that ["cart"] is now stale. */
+      await queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
     } catch (error: any) {
-      console.error("Update cart quantity error:", error);
+
+      console.error("Update cart quantity error:",error);
 
       /* Restore actual database state */
       await fetchCart();
@@ -164,43 +177,55 @@ export default function ProductCartScreen() {
           error?.message ||
           "Could not update cart quantity."
       );
-
     } finally {
       setUpdatingProductId(null);
     }
-
   };
 
   /* Remove Item */
   const removeItem = async (item: CartItem) => {
+
     try {
       setUpdatingProductId(item.productId);
 
-      /*
-      | Remove immediately from UI
-      */
-
+      /* Optimistically remove item from the UI.*/
       setCartItems((currentItems) =>
         currentItems.filter(
-          (cartItem) => cartItem.productId !== item.productId
+          (cartItem) =>
+            cartItem.productId !== item.productId
         )
       );
 
       /* Remove from database */
-      const response = await removeFromCart(item.productId);
+      const response = await removeFromCart(
+        item.productId
+      );
 
+      console.log("Remove cart response:", response);
+
+      /* Backend rejected deletion */
       if (!response?.success) {
         await fetchCart();
 
         Alert.alert(
           "Remove Failed",
-          response?.message || "Could not remove item from cart."
+          response?.message ||
+            "Could not remove item from cart."
         );
-      }
-    } catch (error: any) {
-      console.error("Remove cart item error:", error);
 
-      /* Restore database state */
+        return;
+      }
+
+      /* Refresh React Query's ["cart"] cache.*/
+      await queryClient.invalidateQueries({
+        queryKey: ["cart"],
+      });
+
+    } catch (error: any) {
+      
+      console.error("Remove cart item error:",error);
+      
+      /* Restore actual database state*/
       await fetchCart();
 
       Alert.alert(
@@ -209,6 +234,7 @@ export default function ProductCartScreen() {
           error?.message ||
           "Could not remove item from cart."
       );
+
     } finally {
       setUpdatingProductId(null);
     }
@@ -236,7 +262,8 @@ export default function ProductCartScreen() {
   /* Subtotal */
   const subtotal = useMemo(() => {
     return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) =>
+        total + item.price * item.quantity,
       0
     );
   }, [cartItems]);
@@ -253,11 +280,11 @@ export default function ProductCartScreen() {
   }: {
     item: CartItem;
   }) => {
-    const isUpdating = updatingProductId === item.productId;
+    const isUpdating =
+      updatingProductId === item.productId;
 
     return (
       <View style={styles.cartItem}>
-        
         {/* Product Image */}
         <View style={styles.imageContainer}>
           <Image
@@ -289,11 +316,15 @@ export default function ProductCartScreen() {
           {/* Quantity + Delete */}
           <View style={styles.bottomRow}>
             <View style={styles.quantityContainer}>
+              {/* Decrease */}
               <TouchableOpacity
                 style={styles.quantityButton}
                 disabled={isUpdating}
                 onPress={() =>
-                  updateQuantity(item, "decrease")
+                  updateQuantity(
+                    item,
+                    "decrease"
+                  )
                 }>
                 <Ionicons
                   name="remove"
@@ -302,24 +333,32 @@ export default function ProductCartScreen() {
                 />
               </TouchableOpacity>
 
+              {/* Quantity */}
               {isUpdating ? (
-                <View style={styles.quantityLoading}>
+                <View
+                  style={
+                    styles.quantityLoading
+                  }>
                   <ActivityIndicator
                     size="small"
-                    color="#222"
-                  />
+                    color="#222"/>
                 </View>
               ) : (
-                <Text style={styles.quantity}>
+                <Text
+                  style={styles.quantity}>
                   {item.quantity}
                 </Text>
               )}
 
+              {/* Increase */}
               <TouchableOpacity
                 style={styles.quantityButton}
                 disabled={isUpdating}
                 onPress={() =>
-                  updateQuantity(item, "increase")
+                  updateQuantity(
+                    item,
+                    "increase"
+                  )
                 }>
                 <Ionicons
                   name="add"
@@ -329,6 +368,7 @@ export default function ProductCartScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Delete */}
             <TouchableOpacity
               disabled={isUpdating}
               onPress={() =>
@@ -362,10 +402,10 @@ export default function ProductCartScreen() {
     );
   }
 
+  /* Main Screen */
   return (
     <View style={styles.container}>
       {/* Header */}
-
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.backButton}
@@ -385,8 +425,8 @@ export default function ProductCartScreen() {
 
       {cartItems.length === 0 ? (
         /* Empty Cart */
-
         <View style={styles.emptyContainer}>
+          
           <View style={styles.emptyIconContainer}>
             <Ionicons
               name="cart-outline"
@@ -408,8 +448,7 @@ export default function ProductCartScreen() {
             style={styles.shopButton}
             onPress={() =>
               router.push("/product")
-            }
-          >
+            }>
             <Text style={styles.shopButtonText}>
               Start Shopping
             </Text>
@@ -418,32 +457,40 @@ export default function ProductCartScreen() {
       ) : (
         <>
           {/* Cart List */}
-
           <FlatList
             data={cartItems}
             renderItem={renderCartItem}
-            keyExtractor={(item) => item.productId}
-            showsVerticalScrollIndicator={false}
+            keyExtractor={(item) =>
+              item.productId
+            }
+            showsVerticalScrollIndicator={
+              false
+            }
             contentContainerStyle={
               styles.listContent
             }
           />
 
           {/* Bottom Summary */}
-
           <View style={styles.summaryContainer}>
+            
+            {/* Subtotal */}
             <View style={styles.summaryRow}>
+              
               <Text style={styles.summaryLabel}>
                 Subtotal
               </Text>
 
-              <Text style={styles.summaryValue}>
+              <Text
+                style={styles.summaryValue}>
                 Rs. {subtotal.toLocaleString()}
               </Text>
             </View>
 
+            {/* Delivery */}
             <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>
+              <Text
+                style={styles.summaryLabel}>
                 Delivery Fee
               </Text>
 
@@ -454,6 +501,7 @@ export default function ProductCartScreen() {
 
             <View style={styles.divider} />
 
+            {/* Total */}
             <View style={styles.summaryRow}>
               <Text style={styles.totalLabel}>
                 Total
@@ -464,18 +512,12 @@ export default function ProductCartScreen() {
               </Text>
             </View>
 
+            {/* Checkout */}
             <TouchableOpacity
               style={styles.checkoutButton}
-              onPress={() => {
-                router.push({
-                  pathname: "/product/bill",
-                  params: {
-                    cartItems:
-                      JSON.stringify(cartItems),
-                  },
-                });
-              }}
-            >
+              onPress={() =>
+                router.push("/product/bill")
+              }>
               <Text style={styles.checkoutText}>
                 Proceed to Checkout
               </Text>
@@ -514,7 +556,6 @@ const styles = StyleSheet.create({
   },
 
   /* Header */
-
   header: {
     height: 65,
     paddingHorizontal: 20,
@@ -541,14 +582,12 @@ const styles = StyleSheet.create({
   },
 
   /* List */
-
   listContent: {
     padding: 16,
     paddingBottom: 20,
   },
 
   /* Cart Item */
-
   cartItem: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -648,7 +687,6 @@ const styles = StyleSheet.create({
   },
 
   /* Summary */
-
   summaryContainer: {
     backgroundColor: "#fff",
     paddingHorizontal: 20,
@@ -722,7 +760,6 @@ const styles = StyleSheet.create({
   },
 
   /* Empty Cart */
-
   emptyContainer: {
     flex: 1,
     alignItems: "center",

@@ -14,7 +14,7 @@ import {
   Text,
   View,
 } from "react-native";
-
+import { getCart } from "../../services/cartItem.service";
 import { initiateEsewaPayment } from "../../services/payment.service";
 import { getProductById } from "../../services/product.service";
 
@@ -32,11 +32,11 @@ function imageSourceFor(image: any) {
 }
 
 export default function ProductBillScreen() {
-  const {productId, quantity, cartItems: cartItemsParam} = useLocalSearchParams<{
+
+  const { productId, quantity, mode } = useLocalSearchParams<{
     productId?: string;
     quantity?: string;
     mode?: string;
-    cartItems?: string;
   }>();
 
   // PAYMENT METHOD
@@ -44,50 +44,35 @@ export default function ProductBillScreen() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // CHECKOUT MODE
-  const isCartCheckout = !!cartItemsParam;
+  const isBuyNow = mode === "buy-now" && !!productId;
+  const isCartCheckout = !isBuyNow;
   const productQuantity = Number(quantity) || 1;
 
-  // PARSE CART ITEMS
-  const parsedCartItems: BillItem[] = useMemo(() => {
-    if (!cartItemsParam) {
-      return [];
-    }
-
-    try {
-      const raw = JSON.parse(cartItemsParam as string);
-
-      return raw.map((item: any) => ({
-        id: String(item.id),
-        name: item.name,
-        category: item.category,
-        price: Number(item.price) || 0,
-        quantity: Number(item.quantity) || 1,
-        image: item.image,
-      }));
-    } catch (error) {
-      console.error("Failed to parse cartItems:", error);
-      return [];
-    }
-  }, [cartItemsParam]);
-
-  // FETCH SINGLE PRODUCT
-  const { data, isLoading, isError } = useQuery({
+  // BUY NOW
+  const {data: productData, isLoading: isProductLoading, isError: isProductError} = useQuery({
     queryKey: ["product", productId],
     queryFn: () => getProductById(productId as string),
-    enabled: !isCartCheckout && !!productId,
+    enabled: isBuyNow,
   });
 
-  // SINGLE PRODUCT ITEM
+  // CART CHECKOUT
+  const{data: cartData, isLoading: isCartLoading, isError: isCartError} = useQuery({
+    queryKey: ["cart"],
+    queryFn: getCart,
+    enabled: isCartCheckout,
+  });
+
+  // SINGLE PRODUCT
   const singleItem: BillItem[] = useMemo(() => {
-    if (isCartCheckout || !data) {
+    if (!isBuyNow || !productData) {
       return [];
     }
 
-    const product = data.data ?? data;
+    const product = productData.data ?? productData;
 
     return [
       {
-        id: String(productId),
+        id: String(product.id),
         name: product.product_name,
         category: product.product_category,
         price: Number(product.product_price) || 0,
@@ -95,10 +80,28 @@ export default function ProductBillScreen() {
         image: product.product_image,
       },
     ];
-  }, [data, isCartCheckout, productId, productQuantity]);
+  }, [productData, isBuyNow, productQuantity]);
+
+  // BACKEND CART
+  const cartItems: BillItem[] = useMemo(() => {
+    if (!isCartCheckout || !cartData) {
+      return [];
+    }
+
+    const rawItems = cartData.data ?? [];
+
+    return rawItems.map((item: any) => ({
+      id: String(item.product_id),
+      name: item.product.product_name,
+      category: item.product.product_category,
+      price: Number(item.product.product_price) || 0,
+      quantity: Number(item.quantity) || 1,
+      image: item.product.product_image,
+    }));
+  }, [cartData, isCartCheckout]);
 
   // FINAL ITEMS
-  const items: BillItem[] = isCartCheckout ? parsedCartItems : singleItem;
+  const items = isBuyNow ? singleItem : cartItems;
 
   // PRICE CALCULATIONS
   const subtotal = items.reduce(
@@ -177,7 +180,7 @@ export default function ProductBillScreen() {
 }
 
   // LOADING (single-product fetch only — cart checkout already has its data)
-  if (!isCartCheckout && isLoading) {
+  if ((isBuyNow && isProductLoading) || (isCartCheckout && isCartLoading)) {
     return (
       <SafeAreaView style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#5B2A6F" />
@@ -187,13 +190,22 @@ export default function ProductBillScreen() {
   }
 
   // ERROR
-  if (!isCartCheckout && (isError || !data)) {
+  if ((isBuyNow && (isProductError || !productData)) || (isCartCheckout && isCartError)) {
     return (
       <SafeAreaView style={styles.centerContainer}>
-        <Ionicons name="alert-circle-outline" size={50} color="#777" />
-        <Text style={styles.errorText}>Failed to load product.</Text>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+        <Ionicons 
+          name="alert-circle-outline" 
+          size={50} 
+          color="#777" />
+        <Text style={styles.errorText}>
+          Failed to load product.
+        </Text>
+        <Pressable 
+          style={styles.backButton} 
+          onPress={() => router.back()}>
+          <Text style={styles.backButtonText}>
+            Go Back
+          </Text>
         </Pressable>
       </SafeAreaView>
     );

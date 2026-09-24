@@ -1,6 +1,6 @@
 import { LoadingScreen } from "@/components/common/LoadingScreen";
+import { getToken, removeToken } from "@/helper/tokenStorage";
 import { Ionicons } from "@expo/vector-icons";
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
@@ -238,8 +238,9 @@ return (
         <TouchableOpacity
           style={styles.logoutButton}
           activeOpacity={0.85}
-          onPress={async () => {
-            await AsyncStorage.removeItem("token");
+          onPress={() => {
+            removeToken();
+            console.log("Token after logout:", getToken());
             router.replace("/login");
           }}>
 

@@ -1,6 +1,5 @@
-import { useCart } from "@/context/CartContext";
 import { Ionicons } from "@expo/vector-icons";
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
 import {
@@ -12,6 +11,7 @@ import {
   TextInput,
   View,
 } from "react-native";
+import { getCart } from "../../services/cartItem.service";
 import { getAllProduct } from "../../services/product.service";
 
 
@@ -33,13 +33,26 @@ const categories = [
 ];
 
 export default function ProductScreen() {
+
   const [search, setSearch] = useState("");
   const [favorites, setFavorites] = useState<string[]>([]);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [showCategoryMenu, setShowCategoryMenu] = useState(false);
-  const { cartItems } = useCart();
-  const cartCount = cartItems?.reduce((sum: number, item: any) => sum + item.quantity, 0) ?? 0;
 
+  // GET CART FROM BACKEND
+  const {data: cartData, isLoading: isCartLoading} = useQuery({
+    queryKey: ["cart"],
+    queryFn: getCart,
+  });
+
+  const cartItems = cartData?.data ?? [];
+  
+  const cartCount = cartItems.reduce(
+    (sum: number, item: any) => sum + Number(item.quantity || 0),
+    0
+  );
+
+  // GET PRODUCTS
   const {data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage} = useInfiniteQuery({
   
     queryKey: ["products"],
@@ -55,7 +68,6 @@ export default function ProductScreen() {
 
       return response;
     },
-
 
     getNextPageParam: (lastPage) => {
    
@@ -156,16 +168,14 @@ export default function ProductScreen() {
         {/* Product Name */}
         <Text
           style={styles.productName}
-          numberOfLines={1}
-        >
+          numberOfLines={1}>
           {item.product_name}
         </Text>
 
         {/* Category */}
         <Text
           style={styles.category}
-          numberOfLines={1}
-        >
+          numberOfLines={1}>
           {item.product_category}
         </Text>
 
@@ -187,8 +197,7 @@ export default function ProductScreen() {
 
         <Pressable
           style={styles.headerButton}
-          onPress={() => router.push("/product/cart")}
-        >
+          onPress={() => router.push("/product/cart")}>
           <Ionicons
             name="cart-outline"
             size={21}
@@ -312,15 +321,12 @@ export default function ProductScreen() {
         columnWrapperStyle={styles.columnWrapper}
         contentContainerStyle={styles.productList}
         showsVerticalScrollIndicator={false}
-
         onEndReached={() => {
           if (hasNextPage && !isFetchingNextPage) {
             fetchNextPage();
           }
         }}
-
         onEndReachedThreshold={0.5}
-
         ListFooterComponent={
           isFetchingNextPage ? (
             <View style={styles.loadingMore}>

@@ -1,5 +1,6 @@
 import { loginUser } from "@/services/authentication.service";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Image } from "expo-image";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
@@ -18,6 +19,7 @@ import {
 } from "react-native";
 import Toast from "react-native-toast-message";
 
+
 const BRAND = "#E8291C";
 const BRAND_DARK = "#B22A2D";
 const INK = "#1A1A1E";
@@ -27,11 +29,13 @@ const BORDER_FOCUS = BRAND;
 const BG = "#FAFAFB";
 
 export default function LoginScreen() {
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [focusedField, setFocusedField] = useState<"email" | "password" | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [isChecked, setIsChecked] = useState<boolean>(false);
 
   // Track first back press
   const backPressedOnce = useRef(false);
@@ -93,6 +97,12 @@ export default function LoginScreen() {
       const res = await loginUser(email, password);
 
       if (res.data.token) {
+        if(isChecked) {
+          await AsyncStorage.setItem("remembered_email", email.trim());
+        }else{
+          await AsyncStorage.removeItem("remembered_email");
+        }
+
         Toast.show({
           type: "success",
           text1: "SignIn successful",
@@ -122,6 +132,23 @@ export default function LoginScreen() {
     }
     
   };
+
+  useEffect(() => {
+    const loadRememberedEmail = async () => {
+    try{
+        const savedEmail = await AsyncStorage.getItem("remembered_email");
+
+        if (savedEmail) {
+          setEmail(savedEmail);
+          setIsChecked(true);
+        }
+      } catch (error) {
+        console.error("Failed to load remembered email:", error);
+      }
+    };
+
+    loadRememberedEmail();
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -214,14 +241,34 @@ export default function LoginScreen() {
             </TouchableOpacity>
           </View>
 
-          {/* Forgot Password */}
-          <Pressable
-            style={styles.forgetBtn}
-            onPress={() => router.push("/email-verify")}
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-            <Text style={styles.forgetBtnText}>Forgot password?</Text>
-          </Pressable>
+          {/* Remember Me + Forgot Password */}
+          <View style={styles.optionsRow}>
+            <Pressable
+              style={styles.rememberMe}
+              onPress={() => setIsChecked((prev) => !prev)}
+              disabled={isSubmitting}>
+            
+              <View style={[styles.checkbox, isChecked && styles.checkboxChecked]}>
+                {isChecked && (
+                <Ionicons
+                  name="checkmark"
+                  size={14}
+                  color="#FFFFFF"
+                />
+                )}
+              </View>
+
+              <Text style={styles.rememberMeText}>Remember me</Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => router.push("/email-verify")}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+              <Text style={styles.forgetBtnText}>
+                Forgot password?
+              </Text>
+            </Pressable>
+          </View>
 
           {/* Login Button */}
           <TouchableOpacity
@@ -347,10 +394,39 @@ const styles = StyleSheet.create({
     color: INK,
   },
 
-  forgetBtn: {
-    alignSelf: "flex-end",
-    marginBottom: 20,
-    marginTop: -6,
+  optionsRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  marginBottom: 26,
+  },
+
+  rememberMe: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  checkbox: {
+    width: 18,
+    height: 18,
+    borderWidth: 1.5,
+    borderColor: BORDER,
+    borderRadius: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    marginRight: 8,
+  },
+
+  checkboxChecked: {
+    backgroundColor: BRAND,
+    borderColor: BRAND,
+  },
+
+  rememberMeText: {
+    fontSize: 13,
+    fontWeight: "500",
+    color: INK,
   },
 
   forgetBtnText: {
