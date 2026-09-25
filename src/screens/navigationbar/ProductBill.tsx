@@ -8,15 +8,15 @@ import {
   ActivityIndicator,
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { getCart } from "../../services/cartItem.service";
-import { initiateEsewaPayment } from "../../services/payment.service";
+import { createCODOrder, initiateEsewaPayment } from "../../services/payment.service";
 import { getProductById } from "../../services/product.service";
+
 
 type BillItem = {
   id: string;
@@ -32,7 +32,6 @@ function imageSourceFor(image: any) {
 }
 
 export default function ProductBillScreen() {
-
   const { productId, quantity, mode } = useLocalSearchParams<{
     productId?: string;
     quantity?: string;
@@ -40,23 +39,37 @@ export default function ProductBillScreen() {
   }>();
 
   // PAYMENT METHOD
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "esewa">("esewa");
+  const [paymentMethod, setPaymentMethod] = useState<"cod" | "esewa">(
+    "esewa"
+  );
+
   const [isProcessing, setIsProcessing] = useState(false);
+
+  // COD SUCCESS SCREEN
+  const [showOrderSuccess, setShowOrderSuccess] = useState(false);
 
   // CHECKOUT MODE
   const isBuyNow = mode === "buy-now" && !!productId;
   const isCartCheckout = !isBuyNow;
   const productQuantity = Number(quantity) || 1;
 
-  // BUY NOW
-  const {data: productData, isLoading: isProductLoading, isError: isProductError} = useQuery({
+  // BUY NOW - FETCH PRODUCT
+  const {
+    data: productData,
+    isLoading: isProductLoading,
+    isError: isProductError,
+  } = useQuery({
     queryKey: ["product", productId],
     queryFn: () => getProductById(productId as string),
     enabled: isBuyNow,
   });
 
-  // CART CHECKOUT
-  const{data: cartData, isLoading: isCartLoading, isError: isCartError} = useQuery({
+  // CART CHECKOUT - FETCH BACKEND CART
+  const {
+    data: cartData,
+    isLoading: isCartLoading,
+    isError: isCartError,
+  } = useQuery({
     queryKey: ["cart"],
     queryFn: getCart,
     enabled: isCartCheckout,
@@ -110,130 +123,230 @@ export default function ProductBillScreen() {
   );
 
   const deliveryFee = items.length > 0 ? 150 : 0;
+
   const codCharge = paymentMethod === "cod" ? 15 : 0;
+
   const total = subtotal + deliveryFee + codCharge;
 
   // PAYMENT HANDLER
   async function handlePayment() {
-  try {
-    setIsProcessing(true);
+    try {
+      setIsProcessing(true);
 
-    const token = await getToken();
+      const token = getToken();
+      
+      // CHECK AUTHENTICATION
+      if (!token) {
+        router.push("/login");
+        return;
+      }
 
-    if (!token) {
-      router.push("/login");
-      return;
+      // CASH ON DELIVERY
+      if (paymentMethod === "cod") {
+        const orderItems = items.map((item) => ({
+          productId: item.id,
+          quantity: item.quantity,
+        }));
+
+        if (orderItems.length === 0) {
+          console.error("No products found for COD order.");
+          return;
+        }
+
+        console.log("Creating COD order:", orderItems);
+
+        const response = await createCODOrder(
+          {
+            items: orderItems,
+          },
+          token
+        );
+
+        console.log("COD order response:", response);
+
+        // COD ORDER SUCCESS
+        if (response?.success) {
+          setShowOrderSuccess(true);
+        }
+
+        return;
+      }
+
+      // ESEWA PAYMENT
+      const paymentItems = items.map((item) => ({
+        productId: item.id,
+        quantity: item.quantity,
+      }));
+
+      if (paymentItems.length === 0) {
+        console.error("No products found for payment.");
+        return;
+      }
+
+      console.log("Sending payment items:", paymentItems);
+
+      const response = await initiateEsewaPayment(paymentItems, token);
+
+      console.log("eSewa response:", response);
+
+      const deeplink = response?.data?.deeplink;
+
+      // CHECK DEEPLINK
+      if (!deeplink) {
+        console.error("eSewa deeplink not received:", response);
+        return;
+      }
+
+      // OPEN ESEWA
+      const supported = await Linking.canOpenURL(deeplink);
+
+      if (supported) {
+        await Linking.openURL(deeplink);
+      } else {
+        console.error("Cannot open eSewa deeplink:", deeplink);
+      }
+    } catch (error: any) {
+      console.error(
+        "Payment error:",
+        error?.response?.data || error?.message || error
+      );
+    } finally {
+      setIsProcessing(false);
     }
-
-    // COD
-    if (paymentMethod === "cod") {
-      console.log("COD ORDER");
-      console.log("Items:", items);
-      console.log("Total:", total);
-      return;
-    }
-
-    // eSewa
-    const paymentItems = items.map((item) => ({
-      productId: item.id,
-      quantity: item.quantity,
-    }));
-
-    if (paymentItems.length === 0) {
-      console.error("No products found for payment.");
-      return;
-    }
-
-    console.log("Sending payment items:", paymentItems);
-
-    const response = await initiateEsewaPayment(
-      paymentItems,
-      token
-    );
-
-    console.log("eSewa response:", response);
-
-    const deeplink = response?.data?.deeplink;
-
-    if (!deeplink) {
-      console.error("eSewa deeplink not received:",response);
-      return;
-    }
-
-    const supported = await Linking.canOpenURL(deeplink);
-
-    if (supported) {
-      await Linking.openURL(deeplink);
-    } else {
-      console.error("Cannot open eSewa deeplink:",deeplink);
-    }
-
-  } catch (error: any) {
-
-    console.error("Payment error:",error?.response?.data || error?.message || error);
-  
-  } finally {
-  
-    setIsProcessing(false);
-  
   }
-}
 
-  // LOADING (single-product fetch only — cart checkout already has its data)
+  // COD SUCCESS SCREEN
+  if (showOrderSuccess) {
+    return (
+      <View style={styles.successContainer}>
+        {/* SUCCESS ICON */}
+
+        <View style={styles.successIconContainer}>
+          <Ionicons name="checkmark" size={55} color="#fff" />
+        </View>
+
+        {/* TITLE */}
+        <Text style={styles.successTitle}>
+          Order Placed Successfully
+        </Text>
+
+        {/* MAIN MESSAGE */}
+        <Text style={styles.successMessage}>
+          Your order is placed successfully.
+        </Text>
+
+        {/* DESCRIPTION */}
+        <Text style={styles.successSubMessage}>
+          You have selected Cash on Delivery. Please pay when your order
+          arrives.
+        </Text>
+
+        {/* CONTINUE BUTTON */}
+        <Pressable
+          style={styles.continueButton}
+          onPress={() => router.replace("/")}>
+          <Text style={styles.continueButtonText}>
+            Continue Shopping
+          </Text>
+
+          <Ionicons
+            name="arrow-forward"
+            size={20}
+            color="#fff"
+          />
+        </Pressable>
+      </View>
+    );
+  }
+
+  // LOADING
   if ((isBuyNow && isProductLoading) || (isCartCheckout && isCartLoading)) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
+      <View style={styles.centerContainer}>
         <ActivityIndicator size="large" color="#5B2A6F" />
-        <Text style={styles.loadingText}>Loading product...</Text>
-      </SafeAreaView>
+
+        <Text style={styles.loadingText}>
+          Loading product...
+        </Text>
+      </View>
     );
   }
 
   // ERROR
-  if ((isBuyNow && (isProductError || !productData)) || (isCartCheckout && isCartError)) {
+  if (
+    (isBuyNow && (isProductError || !productData)) ||
+    (isCartCheckout && isCartError)
+  ) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <Ionicons 
-          name="alert-circle-outline" 
-          size={50} 
-          color="#777" />
+      <View style={styles.centerContainer}>
+        <Ionicons
+          name="alert-circle-outline"
+          size={50}
+          color="#777"
+        />
+
         <Text style={styles.errorText}>
           Failed to load product.
         </Text>
-        <Pressable 
-          style={styles.backButton} 
-          onPress={() => router.back()}>
+
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
           <Text style={styles.backButtonText}>
             Go Back
           </Text>
         </Pressable>
-      </SafeAreaView>
+      </View>
     );
   }
 
-  // EMPTY
+  // EMPTY CART
   if (items.length === 0) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <Ionicons name="cart-outline" size={60} color="#777" />
-        <Text style={styles.errorText}>No products found.</Text>
-        <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>Go Back</Text>
+      <View style={styles.centerContainer}>
+        <Ionicons
+          name="cart-outline"
+          size={60}
+          color="#777"
+        />
+
+        <Text style={styles.errorText}>
+          No products found.
+        </Text>
+
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>
+            Go Back
+          </Text>
         </Pressable>
-      </SafeAreaView>
+      </View>
     );
   }
 
+
+  // MAIN PRODUCT BILL SCREEN
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
+    <View style={styles.container}>
+
       <View style={styles.header}>
-        <Pressable style={styles.headerButton} onPress={() => router.back()}>
-          <Ionicons name="arrow-back" size={24} color="#222" />
+        <Pressable
+          style={styles.headerButton}
+          onPress={() => router.back()}>
+          <Ionicons
+            name="arrow-back"
+            size={24}
+            color="#222"
+          />
         </Pressable>
 
         <Text style={styles.headerTitle}>
-          {isCartCheckout ? "Order Summary" : "Product Bill"}
+          {isCartCheckout
+            ? "Order Summary"
+            : "Product Bill"}
         </Text>
 
         <View style={styles.headerButton} />
@@ -242,122 +355,180 @@ export default function ProductBillScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}>
-          
-        {/* Item(s) — one card per item*/}
+
         {items.map((item) => (
-          <View key={item.id} style={styles.productCard}>
+          <View
+            key={item.id}
+            style={styles.productCard}>
             <Image
               source={imageSourceFor(item.image)}
               style={styles.productImage}
-              resizeMode="contain"
-            />
+              resizeMode="contain"/>
 
             <View style={styles.productInfo}>
-              <Text style={styles.productName} numberOfLines={2}>
+              <Text
+                style={styles.productName}
+                numberOfLines={2}>
                 {item.name}
               </Text>
 
               {!!item.category && (
-                <Text style={styles.category}>{item.category}</Text>
+                <Text style={styles.category}>
+                  {item.category}
+                </Text>
               )}
 
               <View style={styles.itemBottomRow}>
                 <Text style={styles.productPrice}>
                   Rs. {item.price.toLocaleString()}
                 </Text>
-                <Text style={styles.itemQty}>Qty: {item.quantity}</Text>
+
+                <Text style={styles.itemQty}>
+                  Qty: {item.quantity}
+                </Text>
               </View>
             </View>
           </View>
         ))}
 
-        {/* Price Details */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="receipt-outline" size={21} color="#5B2A6F" />
-            <Text style={styles.sectionTitle}>Price Details</Text>
+            <Ionicons
+              name="receipt-outline"
+              size={21}
+              color="#5B2A6F"
+            />
+
+            <Text style={styles.sectionTitle}>
+              Price Details
+            </Text>
           </View>
 
+          {/* SUBTOTAL */}
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Subtotal</Text>
+            <Text style={styles.priceLabel}>
+              Subtotal
+            </Text>
+
             <Text style={styles.priceValue}>
               Rs. {subtotal.toLocaleString()}
             </Text>
           </View>
 
+          {/* DELIVERY */}
           <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Delivery Fee</Text>
+            <Text style={styles.priceLabel}>
+              Delivery Fee
+            </Text>
+
             <Text style={styles.priceValue}>
               Rs. {deliveryFee.toLocaleString()}
             </Text>
           </View>
 
+          {/* COD CHARGE */}
           {paymentMethod === "cod" && (
             <View style={styles.priceRow}>
-              <Text style={styles.priceLabel}>COD Charge</Text>
-              <Text style={styles.priceValue}>Rs. 15</Text>
+              <Text style={styles.priceLabel}>
+                COD Charge
+              </Text>
+
+              <Text style={styles.priceValue}>
+                Rs. 15
+              </Text>
             </View>
           )}
 
           <View style={styles.divider} />
 
+          {/* TOTAL */}
           <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalLabel}>
+              Total
+            </Text>
+
             <Text style={styles.totalValue}>
               Rs. {total.toLocaleString()}
             </Text>
           </View>
         </View>
 
-        {/* Payment Method */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <Ionicons name="card-outline" size={21} color="#5B2A6F" />
-            <Text style={styles.sectionTitle}>Payment Method</Text>
+            <Ionicons
+              name="card-outline"
+              size={21}
+              color="#5B2A6F"
+            />
+
+            <Text style={styles.sectionTitle}>
+              Payment Method
+            </Text>
           </View>
 
+          {/* CASH ON DELIVERY */}
           <Pressable
             style={[
               styles.paymentCard,
-              paymentMethod === "cod" && styles.selectedPaymentCard,
+              paymentMethod === "cod" &&
+                styles.selectedPaymentCard,
             ]}
             onPress={() => setPaymentMethod("cod")}>
               
             <View style={styles.codIcon}>
-              <Ionicons name="cash-outline" size={25} color="#5B2A6F" />
+              <Ionicons
+                name="cash-outline"
+                size={25}
+                color="#5B2A6F"
+              />
             </View>
 
             <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>Cash on Delivery</Text>
+              <Text style={styles.paymentTitle}>
+                Cash on Delivery
+              </Text>
+
               <Text style={styles.paymentSubtitle}>
                 Pay when your order arrives
               </Text>
-              <Text style={styles.extraCharge}>+ Rs. 15 COD charge</Text>
+
+              <Text style={styles.extraCharge}>
+                + Rs. 15 COD charge
+              </Text>
             </View>
 
             <Ionicons
               name={
-                paymentMethod === "cod" ? "radio-button-on" : "radio-button-off"
+                paymentMethod === "cod"
+                  ? "radio-button-on"
+                  : "radio-button-off"
               }
               size={24}
               color="#5B2A6F"
             />
           </Pressable>
 
+          {/* ESEWA */}
           <Pressable
             style={[
               styles.paymentCard,
               styles.paymentCardSpacing,
-              paymentMethod === "esewa" && styles.selectedPaymentCard,
+              paymentMethod === "esewa" &&
+                styles.selectedPaymentCard,
             ]}
-            onPress={() => setPaymentMethod("esewa")}>
-
+            onPress={() => setPaymentMethod("esewa")}
+          >
             <View style={styles.esewaIcon}>
-              <Text style={styles.esewaText}>e</Text>
+              <Text style={styles.esewaText}>
+                e
+              </Text>
             </View>
 
             <View style={styles.paymentInfo}>
-              <Text style={styles.paymentTitle}>eSewa</Text>
+              <Text style={styles.paymentTitle}>
+                eSewa
+              </Text>
+
               <Text style={styles.paymentSubtitle}>
                 Secure online payment
               </Text>
@@ -375,47 +546,138 @@ export default function ProductBillScreen() {
           </Pressable>
         </View>
 
-        {/* Notice */}
+        {/* NOTICE */}
         <View style={styles.notice}>
-          <Ionicons name="shield-checkmark-outline" size={20} color="#5B2A6F" />
+          <Ionicons
+            name="shield-checkmark-outline"
+            size={20}
+            color="#5B2A6F"
+          />
+
           <Text style={styles.noticeText}>
-            Your payment will be securely processed through eSewa.
+            {paymentMethod === "cod"
+              ? "Your order will be placed with Cash on Delivery."
+              : "Your payment will be securely processed through eSewa."}
           </Text>
         </View>
       </ScrollView>
 
-      {/* Bottom Payment Bar */}
       <View style={styles.bottomBar}>
         <View>
-          <Text style={styles.bottomLabel}>Total Amount</Text>
-          <Text style={styles.bottomTotal}>Rs. {total.toLocaleString()}</Text>
+          <Text style={styles.bottomLabel}>
+            Total Amount
+          </Text>
+
+          <Text style={styles.bottomTotal}>
+            Rs. {total.toLocaleString()}
+          </Text>
         </View>
 
         <Pressable
           style={[
             styles.paymentButton,
-            isProcessing && styles.paymentButtonDisabled,
+            isProcessing &&
+              styles.paymentButtonDisabled,
           ]}
           onPress={handlePayment}
-          disabled={isProcessing}>
-
+          disabled={isProcessing}
+        >
           {isProcessing ? (
-            <ActivityIndicator size="small" color="#fff" />
+            <ActivityIndicator
+              size="small"
+              color="#fff"
+            />
           ) : (
             <>
               <Text style={styles.paymentButtonText}>
-                {paymentMethod === "cod" ? "Place Order" : "Pay with eSewa"}
+                {paymentMethod === "cod"
+                  ? "Place Order"
+                  : "Pay with eSewa"}
               </Text>
-              <Ionicons name="arrow-forward" size={20} color="#fff" />
+
+              <Ionicons
+                name="arrow-forward"
+                size={20}
+                color="#fff"
+              />
             </>
           )}
         </Pressable>
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 
+
 const styles = StyleSheet.create({
+  // ==========================================================
+  // SUCCESS SCREEN
+  // ==========================================================
+
+  successContainer: {
+    flex: 1,
+    backgroundColor: "#F7F5F8",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 30,
+  },
+
+  successIconContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: "#5B2A6F",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 25,
+  },
+
+  successTitle: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#222",
+    textAlign: "center",
+  },
+
+  successMessage: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#5B2A6F",
+    marginTop: 10,
+    textAlign: "center",
+  },
+
+  successSubMessage: {
+    fontSize: 14,
+    color: "#777",
+    lineHeight: 21,
+    textAlign: "center",
+    marginTop: 10,
+    maxWidth: 320,
+  },
+
+  continueButton: {
+    marginTop: 30,
+    backgroundColor: "#5B2A6F",
+    borderRadius: 12,
+    height: 52,
+    paddingHorizontal: 22,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  continueButtonText: {
+    color: "#fff",
+    fontSize: 15,
+    fontWeight: "700",
+    marginRight: 8,
+  },
+
+  // ==========================================================
+  // GENERAL
+  // ==========================================================
+
   container: {
     flex: 1,
   },
@@ -455,6 +717,10 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
 
+  // ==========================================================
+  // HEADER
+  // ==========================================================
+
   header: {
     height: 60,
     flexDirection: "row",
@@ -479,10 +745,18 @@ const styles = StyleSheet.create({
     color: "#222",
   },
 
+  // ==========================================================
+  // SCROLL
+  // ==========================================================
+
   scrollContent: {
     padding: 16,
     paddingBottom: 100,
   },
+
+  // ==========================================================
+  // PRODUCT CARD
+  // ==========================================================
 
   productCard: {
     backgroundColor: "#fff",
@@ -537,6 +811,10 @@ const styles = StyleSheet.create({
     color: "#777",
   },
 
+  // ==========================================================
+  // SECTION
+  // ==========================================================
+
   section: {
     backgroundColor: "#fff",
     borderRadius: 16,
@@ -556,6 +834,10 @@ const styles = StyleSheet.create({
     color: "#222",
     marginLeft: 8,
   },
+
+  // ==========================================================
+  // PRICE
+  // ==========================================================
 
   priceRow: {
     flexDirection: "row",
@@ -600,6 +882,10 @@ const styles = StyleSheet.create({
     color: "#5B2A6F",
   },
 
+  // ==========================================================
+  // PAYMENT CARDS
+  // ==========================================================
+
   paymentCard: {
     borderWidth: 1,
     borderColor: "#E5DCE8",
@@ -609,19 +895,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
 
-  esewaIcon: {
-    width: 45,
-    height: 45,
-    borderRadius: 10,
-    backgroundColor: "#5B2A6F",
-    justifyContent: "center",
-    alignItems: "center",
+  selectedPaymentCard: {
+    borderColor: "#5B2A6F",
+    borderWidth: 2,
   },
 
-  esewaText: {
-    fontSize: 27,
-    fontWeight: "800",
-    color: "#fff",
+  paymentCardSpacing: {
+    marginTop: 12,
   },
 
   paymentInfo: {
@@ -641,14 +921,9 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
 
-  selectedPaymentCard: {
-    borderColor: "#5B2A6F",
-    borderWidth: 2,
-  },
-
-  paymentCardSpacing: {
-    marginTop: 12,
-  },
+  // ==========================================================
+  // COD ICON
+  // ==========================================================
 
   codIcon: {
     width: 45,
@@ -665,6 +940,29 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
 
+  // ==========================================================
+  // ESEWA ICON
+  // ==========================================================
+
+  esewaIcon: {
+    width: 45,
+    height: 45,
+    borderRadius: 10,
+    backgroundColor: "#5B2A6F",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  esewaText: {
+    fontSize: 27,
+    fontWeight: "800",
+    color: "#fff",
+  },
+
+  // ==========================================================
+  // NOTICE
+  // ==========================================================
+
   notice: {
     flexDirection: "row",
     alignItems: "center",
@@ -680,6 +978,10 @@ const styles = StyleSheet.create({
     color: "#666",
     marginLeft: 9,
   },
+
+  // ==========================================================
+  // BOTTOM BAR
+  // ==========================================================
 
   bottomBar: {
     position: "absolute",
@@ -708,6 +1010,10 @@ const styles = StyleSheet.create({
     color: "#222",
     marginTop: 3,
   },
+
+  // ==========================================================
+  // PAYMENT BUTTON
+  // ==========================================================
 
   paymentButton: {
     backgroundColor: "#5B2A6F",

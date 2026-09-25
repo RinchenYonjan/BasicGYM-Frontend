@@ -76,6 +76,7 @@ export const addToCart = async (
     );
 
     return response.data;
+    
   } catch (error) {
     const axiosError = error as AxiosError<{
       success?: boolean;
